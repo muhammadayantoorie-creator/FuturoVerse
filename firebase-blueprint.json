@@ -1,0 +1,47 @@
+{
+  "projectId": "mythic-compass-c40ks",
+  "databaseId": "ai-studio-classcopilot-067c9dc3-2d02-4ffb-8532-5e86f63bf6f4",
+  "collections": {
+    "app": {
+      "documents": {
+        "database": {
+          "fields": {
+            "stats": {
+              "type": "map",
+              "properties": {
+                "activeStudents": { "type": "number" },
+                "quizzesGenerated": { "type": "number" },
+                "avgClassScore": { "type": "number" },
+                "totalMaterials": { "type": "number" }
+              }
+            },
+            "classes": { "type": "array" },
+            "materials": { "type": "array" },
+            "students": { "type": "array" },
+            "notifications": { "type": "array" },
+            "lessons": { "type": "array" },
+            "quizzes": { "type": "array" },
+            "weakTopics": { "type": "array" },
+            "classrooms": { "type": "array" },
+            "users": { "type": "array" },
+            "gradebook": { "type": "array" },
+            "workspaceItems": { "type": "array" },
+            "conversations": { "type": "array" }
+          }
+        }
+      }
+    },
+    "users": {
+      "documents": {
+        "{userId}": {
+          "fields": {
+            "name": { "type": "string" },
+            "email": { "type": "string" },
+            "role": { "type": "string" },
+            "createdAt": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}
