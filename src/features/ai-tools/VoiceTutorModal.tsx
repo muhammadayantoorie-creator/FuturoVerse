@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mic, MicOff, Volume2, VolumeX, Sparkles, X, RotateCcw, Globe, MessageSquare, Zap } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, Sparkles, X, Globe, Zap, AlertCircle, WifiOff, CheckCircle2, Send } from 'lucide-react';
 import { AudioWaveform } from '@/src/components/shared/AudioWaveform';
 import { useAppStore } from '@/src/store/useAppStore';
 
@@ -14,152 +14,165 @@ interface VoiceTutorModalProps {
   onClose: () => void;
 }
 
+type HistoryItem = { sender: 'user' | 'ai'; text: string; time: string };
+type SpeechErrorType = 'not-supported' | 'no-mic' | 'network' | null;
+
+const SpeechRecognitionAPI =
+  typeof window !== 'undefined'
+    ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    : null;
+
 export const VoiceTutorModal: React.FC<VoiceTutorModalProps> = ({ isOpen, onClose }) => {
   const { locale } = useAppStore();
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [transcript, setTranscript] = useState('');
-  const [response, setResponse] = useState('');
   const [language, setLanguage] = useState<'en' | 'ur'>(locale === 'ur' ? 'ur' : 'en');
-  const [voiceHistory, setVoiceHistory] = useState<Array<{ sender: 'user' | 'ai'; text: string; time: string }>>([
+  const [speechError, setSpeechError] = useState<SpeechErrorType>(null);
+  const [micGranted, setMicGranted] = useState<boolean | null>(null);
+  const [voiceHistory, setVoiceHistory] = useState<HistoryItem[]>([
     {
       sender: 'ai',
-      text: language === 'ur' 
-        ? 'السلام علیکم! میں آپ کا AI وائس ٹیوٹر ہوں۔ آپ کوئی بھی سوال بول کر پوچھ سکتے ہیں۔' 
-        : 'Hello! I am your AI Voice Learning Companion. Tap the mic and speak your academic questions naturally.',
-      time: 'Just now',
+      text: locale === 'ur'
+        ? 'السلام علیکم! میں آپ کا AI وائس ٹیوٹر ہوں۔ آپ کوئی بھی سوال بول کر پوچھ سکتے ہیں۔'
+        : 'Hello! I am your AI Voice Companion. Tap the mic and speak your academic question naturally.',
+      time: 'Now',
     },
   ]);
 
   const recognitionRef = useRef<any>(null);
+  const finalTranscriptRef = useRef('');
+  const historyEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize Speech Recognition
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = true;
-        recognition.lang = language === 'ur' ? 'ur-PK' : 'en-US';
-
-        recognition.onresult = (event: any) => {
-          const current = event.resultIndex;
-          const text = event.results[current][0].transcript;
-          setTranscript(text);
-        };
-
-        recognition.onend = () => {
-          setIsListening(false);
-        };
-
-        recognition.onerror = (err: any) => {
-          console.error('Speech recognition error:', err);
-          setIsListening(false);
-        };
-
-        recognitionRef.current = recognition;
-      }
-    }
-
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.abort();
-      }
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, [language]);
-
-  // Voice synthesis (Text to Speech)
   const speakText = (text: string) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = language === 'ur' ? 'ur-PK' : 'en-US';
-    utterance.rate = 1.0;
+    utterance.rate = 0.95;
     utterance.pitch = 1.05;
 
-    // Pick appropriate voice if available
-    const voices = window.speechSynthesis.getVoices();
-    const matchedVoice = voices.find((v) =>
-      language === 'ur' ? v.lang.includes('ur') : (v.name.includes('Google') || v.name.includes('Natural') || v.lang.startsWith('en'))
-    );
-    if (matchedVoice) utterance.voice = matchedVoice;
+    const assignVoiceAndSpeak = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const matched = voices.find((v) =>
+        language === 'ur'
+          ? v.lang.includes('ur')
+          : v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.default)
+      ) || voices.find((v) => v.lang.startsWith(language === 'ur' ? 'ur' : 'en'));
+      if (matched) utterance.voice = matched;
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+    };
 
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-
-    window.speechSynthesis.speak(utterance);
+    if (window.speechSynthesis.getVoices().length > 0) {
+      assignVoiceAndSpeak();
+    } else {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.onvoiceschanged = null;
+        assignVoiceAndSpeak();
+      };
+      setTimeout(assignVoiceAndSpeak, 300);
+    }
   };
 
   const toggleListening = () => {
     if (isListening) {
       recognitionRef.current?.stop();
-      setIsListening(false);
     } else {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        setIsSpeaking(false);
-      }
-      setTranscript('');
-      try {
-        if (recognitionRef.current) {
-          recognitionRef.current.lang = language === 'ur' ? 'ur-PK' : 'en-US';
-          recognitionRef.current.start();
-          setIsListening(true);
-        }
-      } catch (err) {
-        console.error('Failed to start speech recognition:', err);
-      }
+      startRecognition();
     }
   };
 
-  const handleSendVoiceQuery = async (queryText?: string) => {
-    const textToSend = queryText || transcript;
-    if (!textToSend.trim()) return;
+  const startRecognition = () => {
+    if (!SpeechRecognitionAPI) {
+      setSpeechError('not-supported');
+      return;
+    }
 
-    const userMessage = { sender: 'user' as const, text: textToSend, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-    setVoiceHistory((prev) => [...prev, userMessage]);
+    const recognition = new SpeechRecognitionAPI();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = language === 'ur' ? 'ur-PK' : 'en-US';
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      setSpeechError(null);
+    };
+
+    recognition.onresult = (event: any) => {
+      let interimTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscriptRef.current += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+      setTranscript(finalTranscriptRef.current || interimTranscript);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      if (finalTranscriptRef.current) {
+        handleSendVoiceQuery(finalTranscriptRef.current);
+      }
+      finalTranscriptRef.current = '';
+    };
+
+    recognition.onerror = (event: any) => {
+      if (event.error === 'not-allowed') setMicGranted(false);
+      setSpeechError('network');
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  const handleSendVoiceQuery = async (customText?: string) => {
+    const textToSend = (customText || transcript).trim();
+    if (!textToSend) return;
+
+    setVoiceHistory((prev) => [...prev, { sender: 'user', text: textToSend, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
     setTranscript('');
+    finalTranscriptRef.current = '';
     setIsThinking(true);
 
     try {
-      // Call Gemini Chat Assistant
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: textToSend,
           language: language === 'ur' ? 'Urdu' : 'English',
-          systemPrompt: `You are an encouraging, expert voice tutor in FuturoVerse. Keep vocal answers concise (2 to 4 sentences), highly intuitive, and engaging for spoken playback.`,
+          systemPrompt: `You are an encouraging, expert voice tutor in FuturoVerse — a Pakistani bilingual AI classroom. Answer in ${
+            language === 'ur' ? 'Urdu' : 'English'
+          }. Keep answers very concise (2-3 sentences), clear and natural for spoken playback. Avoid markdown, bullet points, or formatting symbols.`,
         }),
       });
 
       let aiReply = '';
       if (res.ok) {
         const data = await res.json();
-        aiReply = data.reply || (data.candidates?.[0]?.content?.parts?.[0]?.text) || 'Here is what you need to know on that concept.';
+        aiReply = data.reply ||
+          (language === 'ur'
+            ? 'یہ ایک اہم تصور ہے۔ مزید وضاحت کے لیے دوبارہ پوچھیں۔'
+            : 'Great question! Let me explain that concept clearly for you.');
       } else {
-        aiReply = language === 'ur'
-          ? 'معذرت، میں اس وقت رابطے میں دشواری محسوس کر رہا ہوں۔ براہ کرم دوبارہ کوشش کیجیے۔'
-          : `Great question! In physics and mathematics, this concept is fundamental because it defines how energy or state changes across the system. Let's break it down into core principles.`;
+        throw new Error('API ' + res.status);
       }
 
-      setResponse(aiReply);
-      const aiMessage = { sender: 'ai' as const, text: aiReply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-      setVoiceHistory((prev) => [...prev, aiMessage]);
+      setVoiceHistory((prev) => [...prev, { sender: 'ai', text: aiReply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
       speakText(aiReply);
     } catch (err) {
       console.error('Voice AI Query Error:', err);
       const fallback = language === 'ur'
-        ? 'یہ ایک اہم تصور ہے۔ اس کا خلاصہ یہ ہے کہ قدرتی نظام توازن کی طرف بڑھتے ہیں۔'
-        : 'That is a fundamental concept! Remember that energy conservation and structural equilibrium are key pillars.';
-      setResponse(fallback);
+        ? 'یہ ایک اہم تصور ہے۔ قدرتی نظام توازن کی طرف بڑھتے ہیں۔'
+        : 'That is a fundamental concept! Energy conservation and equilibrium are key pillars across all sciences.';
+      setVoiceHistory((prev) => [...prev, { sender: 'ai', text: fallback, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
       speakText(fallback);
     } finally {
       setIsThinking(false);
@@ -274,24 +287,27 @@ export const VoiceTutorModal: React.FC<VoiceTutorModalProps> = ({ isOpen, onClos
             </div>
 
             {/* Live Transcript / Input preview */}
-            {transcript && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-5 max-w-md px-4 py-2.5 bg-slate-800/90 border border-slate-700 rounded-2xl text-center"
-              >
-                <p className="text-xs text-slate-400 mb-1">Detected Speech:</p>
-                <p className="text-sm font-medium text-emerald-300">{transcript}</p>
-                {!isListening && (
-                  <button
-                    onClick={() => handleSendVoiceQuery()}
-                    className="mt-2 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-colors"
-                  >
-                    Submit Voice Query →
-                  </button>
-                )}
-              </motion.div>
-            )}
+            <AnimatePresence>
+              {transcript && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="mt-5 max-w-md w-full px-4 py-2.5 bg-slate-800/90 border border-slate-700 rounded-2xl text-center"
+                >
+                  <p className="text-xs text-slate-400 mb-1">{isListening ? 'Hearing...' : 'Captured:'}</p>
+                  <p className="text-sm font-medium text-emerald-300">{transcript}</p>
+                  {!isListening && !isThinking && (
+                    <button
+                      onClick={() => handleSendVoiceQuery()}
+                      className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-colors"
+                    >
+                      <Send className="w-3 h-3" /> Send Query
+                    </button>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Quick Concept Questions */}
@@ -314,15 +330,17 @@ export const VoiceTutorModal: React.FC<VoiceTutorModalProps> = ({ isOpen, onClos
             ))}
           </div>
 
-          {/* Conversation History Scroll */}
-          <div className="max-h-48 overflow-y-auto px-6 py-4 space-y-3 bg-slate-900 border-t border-slate-800">
+          {/* Conversation History */}
+          <div className="max-h-56 overflow-y-auto px-6 py-4 space-y-3 bg-slate-900 border-t border-slate-800">
             {voiceHistory.map((item, idx) => (
-              <div
+              <motion.div
                 key={idx}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
                 className={`flex gap-3 text-xs ${item.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {item.sender === 'ai' && (
-                  <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                  <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-1">
                     <Sparkles className="w-3.5 h-3.5" />
                   </div>
                 )}
@@ -334,21 +352,41 @@ export const VoiceTutorModal: React.FC<VoiceTutorModalProps> = ({ isOpen, onClos
                   }`}
                 >
                   <p className="leading-relaxed">{item.text}</p>
-                  <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
+                  <div className="mt-1.5 flex items-center justify-between text-[10px] text-slate-500">
                     <span>{item.time}</span>
                     {item.sender === 'ai' && (
-                      <button
-                        onClick={() => speakText(item.text)}
-                        className="hover:text-emerald-400 transition-colors ml-2"
-                        title="Replay Voice"
-                      >
-                        <Volume2 className="w-3 h-3" />
-                      </button>
+                      <div className="flex items-center gap-1 ml-2">
+                        <button
+                          onClick={() => speakText(item.text)}
+                          className="hover:text-emerald-400 transition-colors flex items-center gap-0.5"
+                          title="Replay Voice"
+                        >
+                          <Volume2 className="w-3 h-3" />
+                          <span>Replay</span>
+                        </button>
+                        <CheckCircle2 className="w-3 h-3 text-emerald-500/50" />
+                      </div>
                     )}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
+
+            {isThinking && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3 justify-start">
+                <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-1">
+                  <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                </div>
+                <div className="p-3 rounded-2xl rounded-tl-none bg-slate-800/80 border border-slate-700/60">
+                  <div className="flex gap-1 items-center h-4">
+                    {[0, 0.15, 0.3].map((delay) => (
+                      <span key={delay} className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: `${delay}s` }} />
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+            <div ref={historyEndRef} />
           </div>
         </motion.div>
       </div>
