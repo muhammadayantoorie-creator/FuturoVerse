@@ -632,17 +632,6 @@ export const Dashboard: React.FC = () => {
                   <span className="font-semibold text-emerald-500 font-sans">Self-Paced / Guided</span>
                 </div>
               </div>
-
-              {/* Toggle Back to Teacher Button */}
-              <div className="mt-6">
-                <Button 
-                  variant="secondary" 
-                  className="w-full text-xs py-2.5 font-bold" 
-                  onClick={() => setRole('teacher')}
-                >
-                  Switch back to Teacher View
-                </Button>
-              </div>
             </Card>
           </div>
         </div>

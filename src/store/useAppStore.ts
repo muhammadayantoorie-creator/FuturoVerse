@@ -71,10 +71,10 @@ interface AppState {
 }
 
 const initialUser: User = {
-  id: 'usr_student',
-  name: 'Student User',
-  email: 'student@domain.edu.pk',
-  role: 'student',
+  id: 'usr_teacher',
+  name: 'Teacher User',
+  email: 'teacher@domain.edu.pk',
+  role: 'teacher',
   avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC1jpDL0T17Nug1I73cKFaluo__r7LzQwxx6PsTUeiM0PfB0KlnSyBK5Gry5_OqPHSu2XUeiLHD0Pdgl8c-FK1Nh3ekz_yu2JDPjldCEwf2xom-BnUr3BRfYFoOKs-KxtJsF9Sn0_bmZZ3xkm_zpTa7yzbvyGvm8KxE63XBzDRXTGUNIFpriJG7TBj5SU4ituE492UPv8YljJ3pdhsSM98_2YKFMEOD68dkMEuppByzzUSEjWiE1ImHHA',
   semesterProgress: 75,
 };
@@ -103,9 +103,10 @@ const initialUploadedMaterials: UploadedMaterial[] = [
   }
 ];
 
+const todayDateStr = new Date().toISOString().split('T')[0];
 const initialLessons: Lesson[] = [
-  { id: 'les_001', title: 'Quantum Mechanics Intro', subject: 'Physics 101', time: '09:00 AM', instructor: 'Prof. Kamran', joinUrl: 'https://zoom.us/j/123456789' },
-  { id: 'les_002', title: "Iqbal's Poetry Analysis", subject: 'Urdu Literature', time: '11:30 AM', instructor: 'Prof. Nasreen', joinUrl: 'https://zoom.us/j/987654321' },
+  { id: 'les_001', title: 'Quantum Mechanics Intro', subject: 'Physics 101', time: '09:00 AM', date: todayDateStr, instructor: 'Prof. Kamran', joinUrl: 'https://zoom.us/j/123456789' },
+  { id: 'les_002', title: "Iqbal's Poetry Analysis", subject: 'Urdu Literature', time: '11:30 AM', date: todayDateStr, instructor: 'Prof. Nasreen', joinUrl: 'https://zoom.us/j/987654321' },
 ];
 
 const initialAchievements: Achievement[] = [
