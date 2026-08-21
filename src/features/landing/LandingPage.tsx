@@ -94,20 +94,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth, onEx
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           {/* Logo & Brand */}
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                <span>FuturoVerse</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300/40">
-                  Pakistan 🇵🇰
-                </span>
-              </span>
-              <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                {isRtl ? 'اسمارٹ بائلنگول تعلیمی مینجمنٹ' : 'Bilingual AI Classroom Platform'}
-              </p>
-            </div>
+            <img
+              src="/logo.jpg"
+              alt="FuturoVerse Logo"
+              className="h-12 w-auto object-contain rounded-xl shadow-md shadow-emerald-500/10"
+            />
+            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300/40 hidden sm:inline-flex">
+              Pakistan 🇵🇰
+            </span>
           </div>
 
           {/* Desktop Navigation Links */}
@@ -1129,9 +1123,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth, onEx
       <footer className="py-12 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-500 dark:text-slate-400 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white font-bold">
-              <Sparkles className="w-4 h-4" />
-            </div>
+            <img
+              src="/logo.jpg"
+              alt="FuturoVerse Logo"
+              className="h-9 w-auto object-contain rounded-lg"
+            />
             <div>
               <span className="font-bold text-slate-800 dark:text-slate-200">FuturoVerse Pakistan</span>
               <p className="text-[10px] text-slate-400">© {new Date().getFullYear()} FuturoVerse. FBISE & HEC Compliant.</p>

@@ -153,18 +153,17 @@ export const Layout: React.FC<LayoutProps> = ({ children, onNavigateToLanding })
         }`}
       >
         <div className="mb-4 select-none flex items-center justify-between">
-          <div>
-            <h1 className="font-headline-md text-headline-md font-bold text-primary dark:text-teal-400">
-              {getTranslation(locale, 'appName')}
-            </h1>
-            <p className="font-label-sm text-label-sm text-slate-500 dark:text-slate-400">
-              {getTranslation(locale, 'aiPlatform')}
-            </p>
+          <div className="flex items-center gap-3 min-w-0">
+            <img
+              src="/logo.jpg"
+              alt="FuturoVerse Logo"
+              className="h-10 w-auto object-contain rounded-xl shrink-0 shadow-sm"
+            />
           </div>
           {onNavigateToLanding && (
             <button
               onClick={onNavigateToLanding}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
               title="View Landing Page"
             >
               <Home className="w-4 h-4" />
@@ -272,16 +271,18 @@ export const Layout: React.FC<LayoutProps> = ({ children, onNavigateToLanding })
         {/* Top AppBar */}
         <header className="sticky top-0 z-30 h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 flex items-center justify-between shadow-sm">
           {/* Mobile menu trigger */}
-          <div className="flex items-center gap-4 md:hidden">
+          <div className="flex items-center gap-3 md:hidden">
             <button 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer"
             >
               <Menu className="w-6 h-6" />
             </button>
-            <span className="font-headline-md text-lg font-bold text-primary dark:text-teal-400">
-              {getTranslation(locale, 'appName')}
-            </span>
+            <img
+              src="/logo.jpg"
+              alt="FuturoVerse Logo"
+              className="h-8 w-auto object-contain rounded-lg"
+            />
           </div>
 
           {/* Desktop Search / Command Palette trigger */}
