@@ -443,71 +443,73 @@ export const AiTools: React.FC = () => {
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-1">
       {/* Workspace Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute left-1/3 bottom-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="bg-slate-900 text-white p-6 sm:p-7 rounded-3xl border border-slate-800 shadow-xl relative overflow-hidden space-y-6">
+        <div className="absolute right-0 top-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute left-1/3 bottom-0 w-60 h-60 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
         
-        <div>
-          <div className="flex items-center gap-2 mb-2 text-indigo-400 font-medium text-sm tracking-wider uppercase font-mono">
-            <Sparkles className="w-4 h-4 animate-pulse" />
-            <span>FuturoVerse AI Workspace</span>
+        {/* Top Row: Title, Subtitle, and Voice Tutor Quick Launch */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
+          <div>
+            <div className="flex items-center gap-2 mb-2 text-indigo-400 font-medium text-xs tracking-wider uppercase font-mono">
+              <Sparkles className="w-4 h-4 animate-pulse" />
+              <span>FuturoVerse AI Workspace</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold font-sans tracking-tight">
+              AI Co-Pilot Workspace
+            </h2>
+            <p className="text-slate-400 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
+              Empowering Pakistani educators and students with dual-language materials. Streamline summaries, quizzes, flashcards, mind maps, and vision solutions.
+            </p>
           </div>
-          <h2 className="text-3xl font-bold font-sans tracking-tight">
-            AI Co-Pilot Workspace
-          </h2>
-          <p className="text-slate-400 text-sm mt-1.5 max-w-xl">
-            Empowering Pakistani educators with premium, dual-language materials. Streamline summaries, quizzes, flashcards, mind maps, and analytic homework rubrics.
-          </p>
-        </div>
 
-        {/* Tab Controls & Voice Launcher */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Voice Companion Quick Launch Button */}
           <button
             onClick={() => setIsVoiceModalOpen(true)}
-            className="px-3.5 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-2xl text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 cursor-pointer"
+            className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black rounded-2xl text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer shrink-0"
           >
-            <Mic className="w-3.5 h-3.5 animate-pulse" />
+            <Mic className="w-4 h-4 animate-pulse" />
             <span>AI Voice Tutor</span>
           </button>
+        </div>
 
-          <div className="flex bg-slate-800/80 p-1 rounded-2xl border border-slate-700/80 self-stretch md:self-auto overflow-x-auto shrink-0 gap-1">
+        {/* Bottom Row: Tab Navigation Bar (Full Width, Wrap-friendly, Never Cut Off) */}
+        <div className="relative z-10 pt-2 border-t border-slate-800/80">
+          <div className="flex flex-wrap items-center gap-2 bg-slate-950/60 p-1.5 rounded-2xl border border-slate-800/80 backdrop-blur-sm">
             <button
               onClick={() => { setActiveSubTab('chat'); }}
-              className={`px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${activeSubTab === 'chat' ? 'bg-indigo-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
+              className={`flex-1 min-w-[120px] px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${activeSubTab === 'chat' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-300 hover:text-white hover:bg-slate-800/50'}`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              AI Chatbot
+              <span>AI Chatbot</span>
             </button>
             <button
               onClick={() => { setActiveSubTab('vision'); }}
-              className={`px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${activeSubTab === 'vision' ? 'bg-emerald-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
+              className={`flex-1 min-w-[120px] px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${activeSubTab === 'vision' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-300 hover:text-white hover:bg-slate-800/50'}`}
             >
-              <Eye className="w-3.5 h-3.5 text-emerald-400" />
-              Vision Solver
+              <Eye className="w-3.5 h-3.5 text-emerald-300" />
+              <span>Vision Solver</span>
             </button>
             <button
               onClick={() => { setActiveSubTab('mindmap'); }}
-              className={`px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${activeSubTab === 'mindmap' ? 'bg-purple-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
+              className={`flex-1 min-w-[120px] px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${activeSubTab === 'mindmap' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-300 hover:text-white hover:bg-slate-800/50'}`}
             >
-              <GitBranch className="w-3.5 h-3.5 text-purple-400" />
-              Mind Map
+              <GitBranch className="w-3.5 h-3.5 text-purple-300" />
+              <span>Mind Map</span>
             </button>
             <button
               onClick={() => { setActiveSubTab('workspace'); }}
-              className={`px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${activeSubTab === 'workspace' ? 'bg-indigo-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
+              className={`flex-1 min-w-[120px] px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${activeSubTab === 'workspace' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-300 hover:text-white hover:bg-slate-800/50'}`}
             >
               <PenTool className="w-3.5 h-3.5" />
-              AI Studio
+              <span>AI Studio</span>
             </button>
             <button
               onClick={() => { setActiveSubTab('saved'); }}
-              className={`px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 relative cursor-pointer ${activeSubTab === 'saved' ? 'bg-indigo-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
+              className={`flex-1 min-w-[120px] px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 flex items-center justify-center gap-2 relative cursor-pointer ${activeSubTab === 'saved' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-300 hover:text-white hover:bg-slate-800/50'}`}
             >
               <Save className="w-3.5 h-3.5" />
-              Library
+              <span>Library</span>
               {savedItems.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                <span className="bg-rose-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold ml-1">
                   {savedItems.length}
                 </span>
               )}
