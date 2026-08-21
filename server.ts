@@ -92,7 +92,17 @@ async function loadDbFromFirestore() {
   }
 }
 
+app.use((req, res, next) => {
+  // Support pre-parsed body from Vercel / serverless runtime
+  if (req.body && typeof req.body === 'string') {
+    try {
+      req.body = JSON.parse(req.body);
+    } catch {}
+  }
+  next();
+});
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.get('/api/firebase-status', async (req, res) => {

@@ -13,7 +13,6 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     const p = Array.isArray(req.query.path) ? req.query.path.join('/') : req.query.path;
     pathUrl = `/api/${p}`;
   } else if (pathUrl === '/api/index' || pathUrl === '/index' || pathUrl.startsWith('/api/index?')) {
-    // 2. Check matched path headers
     const matchPath = (req.headers['x-matched-path'] as string) || (req.headers['x-vercel-rewrite-url'] as string);
     const rawMatches = req.headers['x-now-route-matches'] as string;
 
@@ -33,6 +32,11 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   req.url = pathUrl;
+
+  // If Vercel already parsed the body, flag it so express.json() does not hang
+  if (req.body && typeof req.body === 'object') {
+    (req as any)._body = true;
+  }
 
   return app(req as any, res as any);
 }
