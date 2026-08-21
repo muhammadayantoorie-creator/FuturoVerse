@@ -101,32 +101,6 @@ export const Classes: React.FC = () => {
   const [selectedClassroom, setSelectedClassroom] = useState<Classroom | null>(null);
   const [deletingClassroom, setDeletingClassroom] = useState<Classroom | null>(null);
 
-  // Create Form State
-  const [createForm, setCreateForm] = useState({
-    name: '',
-    subjectCode: '',
-    department: 'Physics',
-    section: 'Section A',
-    room: '',
-    description: '',
-  });
-  const [createSubmitting, setCreateSubmitting] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
-
-  // Edit Form State
-  const [editForm, setEditForm] = useState({
-    id: '',
-    name: '',
-    subjectCode: '',
-    department: 'Physics',
-    section: 'Section A',
-    room: '',
-    description: '',
-    status: 'active' as 'active' | 'archived',
-  });
-  const [editSubmitting, setEditSubmitting] = useState(false);
-  const [editError, setEditError] = useState<string | null>(null);
-
   // Invitation Form State inside Manage Dialog
   const [inviteForm, setInviteForm] = useState({ name: '', email: '' });
   const [inviteSubmitting, setInviteSubmitting] = useState(false);
@@ -141,7 +115,6 @@ export const Classes: React.FC = () => {
   // Listen to external create modal trigger (e.g. from Sidebar CTA)
   useEffect(() => {
     if (isCreateClassModalOpen) {
-      setCreateError(null);
       setCreateOpen(true);
       setCreateClassModalOpen(false);
     }
@@ -184,79 +157,10 @@ export const Classes: React.FC = () => {
     }
   }, [classrooms, selectedClassroom?.id]);
 
-  // Create Form Handler
-  const handleCreateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!createForm.name.trim() || !createForm.subjectCode.trim() || !createForm.department) {
-      setCreateError(t('Please fill in all required fields (Course Name, Subject Code, Department).', 'براہ کرم تمام مطلوبہ معلومات فراہم کریں۔'));
-      return;
-    }
-    setCreateSubmitting(true);
-    setCreateError(null);
-    try {
-      await createClassroom({
-        name: createForm.name.trim(),
-        subjectCode: createForm.subjectCode.trim().toUpperCase(),
-        department: createForm.department,
-        section: createForm.section.trim() || 'Section A',
-        room: createForm.room.trim(),
-        description: createForm.description.trim(),
-        status: 'active',
-      });
-      addToast(t(`Class "${createForm.name}" (${createForm.section.trim() || 'Section A'}) created successfully!`, `کلاس روم "${createForm.name}" کامیابی سے بنائی گئی!`), 'success');
-      setCreateOpen(false);
-      setCreateForm({ name: '', subjectCode: '', department: 'Physics', section: 'Section A', room: '', description: '' });
-      await loadClassrooms();
-    } catch (err: any) {
-      setCreateError(err.message || t('An error occurred while creating classroom.', 'کلاس روم بنانے کے دوران خرابی پیش آئی۔'));
-    } finally {
-      setCreateSubmitting(false);
-    }
-  };
-
   // Edit Click Initiator
   const handleEditClick = (cls: Classroom) => {
-    setEditForm({
-      id: cls.id,
-      name: cls.name,
-      subjectCode: cls.subjectCode,
-      department: cls.department,
-      section: cls.section || 'Section A',
-      room: cls.room || '',
-      description: cls.description || '',
-      status: cls.status || 'active',
-    });
-    setEditError(null);
+    setSelectedClassroom(cls);
     setEditOpen(true);
-  };
-
-  // Edit Form Handler
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editForm.name.trim() || !editForm.subjectCode.trim() || !editForm.department) {
-      setEditError(t('Please fill in all required fields.', 'براہ کرم تمام مطلوبہ معلومات فراہم کریں۔'));
-      return;
-    }
-    setEditSubmitting(true);
-    setEditError(null);
-    try {
-      await updateClassroom(editForm.id, {
-        name: editForm.name.trim(),
-        subjectCode: editForm.subjectCode.trim().toUpperCase(),
-        department: editForm.department,
-        section: editForm.section.trim() || 'Section A',
-        room: editForm.room.trim(),
-        description: editForm.description.trim(),
-        status: editForm.status,
-      });
-      addToast(t('Classroom settings updated successfully!', 'کلاس روم کی ترتیبات کامیابی سے اپ ڈیٹ ہو گئیں!'), 'success');
-      setEditOpen(false);
-      await loadClassrooms();
-    } catch (err: any) {
-      setEditError(err.message || t('An error occurred while updating classroom.', 'کلاس روم اپ ڈیٹ کرنے کے دوران خرابی پیش آئی۔'));
-    } finally {
-      setEditSubmitting(false);
-    }
   };
 
   // Delete Confirmation Click
@@ -663,221 +567,33 @@ export const Classes: React.FC = () => {
       {/* ================= MODALS ================= */}
 
       {/* 1. Create Classroom Dialog */}
-      <Dialog
+      <CreateClassDialog
         isOpen={createOpen}
         onClose={() => setCreateOpen(false)}
-        title={t('Create New Classroom', 'نئی کلاس روم بنائیں')}
-        size="md"
-        footer={
-          <>
-            <Button
-              variant="outlined"
-              onClick={() => setCreateOpen(false)}
-              className="rounded-xl border border-slate-200 dark:border-slate-800 font-sans font-semibold px-4 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-            >
-              {t('Cancel', 'کینسل')}
-            </Button>
-            <Button
-              onClick={handleCreateSubmit}
-              disabled={createSubmitting}
-              className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-sans font-semibold px-4 flex items-center gap-1.5"
-            >
-              {createSubmitting ? (
-                <Spinner size="xs" variant="white" />
-              ) : (
-                <Plus className="w-4 h-4" />
-              )}
-              {t('Create', 'تخلیق کریں')}
-            </Button>
-          </>
-        }
-      >
-        <form onSubmit={handleCreateSubmit} className="space-y-4">
-          {createError && (
-            <div className="p-3.5 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-950/40 text-rose-600 dark:text-rose-400 text-xs font-semibold rounded-xl flex items-center gap-2">
-              <AlertCircle className="w-4.5 h-4.5 shrink-0" />
-              <span>{createError}</span>
-            </div>
-          )}
-
-          <div className="space-y-4">
-            {/* Name Input */}
-            <Input
-              label={t('Class / Course Name *', 'کلاس کا نام *')}
-              placeholder={t('e.g., Physics 101: Mechanics', 'مثال کے طور پر: فزکس ۱۰۱')}
-              value={createForm.name}
-              onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
-              required
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              {/* Subject Code */}
-              <Input
-                label={t('Subject Code *', 'مضمون کوڈ *')}
-                placeholder={t('e.g., PHYS-101', 'مثال کے طور پر: PHYS-101')}
-                value={createForm.subjectCode}
-                onChange={(e) => setCreateForm({ ...createForm, subjectCode: e.target.value })}
-                required
-              />
-
-              {/* Section */}
-              <Input
-                label={t('Section / Batch *', 'سیکشن / بیچ *')}
-                placeholder={t('e.g., Section A, Section B, Morning', 'مثال: سیکشن اے، بی، مارننگ')}
-                value={createForm.section}
-                onChange={(e) => setCreateForm({ ...createForm, section: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {/* Department */}
-              <Select
-                label={t('Department *', 'شعبہ جات *')}
-                value={createForm.department}
-                onChange={(e) => setCreateForm({ ...createForm, department: e.target.value })}
-                options={departments.map((dept) => ({ value: dept, label: dept }))}
-              />
-
-              {/* Room / Location */}
-              <Input
-                label={t('Room / Lab Location (Optional)', 'کمرہ / لیب (اختیاری)')}
-                placeholder={t('e.g., Lab 3B, Hall 102', 'مثال: لیب ۳ بی، ہال ۱۰۲')}
-                value={createForm.room}
-                onChange={(e) => setCreateForm({ ...createForm, room: e.target.value })}
-              />
-            </div>
-
-            {/* Description Textarea */}
-            <div className="flex flex-col gap-1.5">
-              <label className="font-sans font-semibold text-xs text-on-surface dark:text-slate-300">
-                {t('Description', 'تفصیل')}
-              </label>
-              <textarea
-                rows={3}
-                placeholder={t('e.g., Extended lectures with quantum waves and mechanics labs...', 'مثال کے طور پر: مکینکس اور کوانٹم فزکس کا نصاب...')}
-                value={createForm.description}
-                onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
-                className="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant dark:border-slate-800 rounded-xl p-3.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-sans text-sm transition-all placeholder:text-outline/70 dark:text-slate-100"
-              />
-            </div>
-          </div>
-        </form>
-      </Dialog>
+        onSubmit={async (data) => {
+          await createClassroom(data);
+          addToast(t(`Class "${data.name}" (${data.section || 'Section A'}) created successfully!`, `کلاس روم "${data.name}" کامیابی سے بنائی گئی!`), 'success');
+          await loadClassrooms();
+        }}
+        departments={departments}
+        t={t}
+      />
 
       {/* 2. Edit Classroom Dialog */}
-      <Dialog
-        isOpen={editOpen}
-        onClose={() => setEditOpen(false)}
-        title={t('Edit Classroom & Section Details', 'کلاس اور سیکشن کی تفصیلات درست کریں')}
-        size="md"
-        footer={
-          <>
-            <Button
-              variant="outlined"
-              onClick={() => setEditOpen(false)}
-              className="rounded-xl border border-slate-200 dark:border-slate-800 font-sans font-semibold px-4 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-            >
-              {t('Cancel', 'کینسل')}
-            </Button>
-            <Button
-              onClick={handleEditSubmit}
-              disabled={editSubmitting}
-              className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-sans font-semibold px-4 flex items-center gap-1.5"
-            >
-              {editSubmitting ? (
-                <Spinner size="xs" variant="white" />
-              ) : (
-                <Check className="w-4 h-4" />
-              )}
-              {t('Save Changes', 'تبدیلیاں محفوظ کریں')}
-            </Button>
-          </>
-        }
-      >
-        <form onSubmit={handleEditSubmit} className="space-y-4">
-          {editError && (
-            <div className="p-3.5 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-950/40 text-rose-600 dark:text-rose-400 text-xs font-semibold rounded-xl flex items-center gap-2">
-              <AlertCircle className="w-4.5 h-4.5 shrink-0" />
-              <span>{editError}</span>
-            </div>
-          )}
-
-          <div className="space-y-4">
-            {/* Name Input */}
-            <Input
-              label={t('Class / Course Name *', 'کلاس کا نام *')}
-              placeholder="e.g., Physics 101: Mechanics"
-              value={editForm.name}
-              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-              required
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              {/* Subject Code */}
-              <Input
-                label={t('Subject Code *', 'مضمون کوڈ *')}
-                placeholder="e.g., PHYS-101"
-                value={editForm.subjectCode}
-                onChange={(e) => setEditForm({ ...editForm, subjectCode: e.target.value })}
-                required
-              />
-
-              {/* Section */}
-              <Input
-                label={t('Section / Batch *', 'سیکشن / بیچ *')}
-                placeholder="e.g., Section A, Morning"
-                value={editForm.section}
-                onChange={(e) => setEditForm({ ...editForm, section: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {/* Department */}
-              <Select
-                label={t('Department *', 'شعبہ جات *')}
-                value={editForm.department}
-                onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
-                options={departments.map((dept) => ({ value: dept, label: dept }))}
-              />
-
-              {/* Room / Location */}
-              <Input
-                label={t('Room / Lab Location', 'کمرہ / لیب')}
-                placeholder="e.g., Lab 3B, Hall 102"
-                value={editForm.room}
-                onChange={(e) => setEditForm({ ...editForm, room: e.target.value })}
-              />
-            </div>
-
-            {/* Status Select */}
-            <Select
-              label={t('Status', 'حیثیت')}
-              value={editForm.status}
-              onChange={(e) => setEditForm({ ...editForm, status: e.target.value as 'active' | 'archived' })}
-              options={[
-                { value: 'active', label: t('Active', 'فعال') },
-                { value: 'archived', label: t('Archived', 'آرکائیو شدہ') },
-              ]}
-            />
-
-            {/* Description Textarea */}
-            <div className="flex flex-col gap-1.5">
-              <label className="font-sans font-semibold text-xs text-on-surface dark:text-slate-300">
-                {t('Description', 'تفصیل')}
-              </label>
-              <textarea
-                rows={3}
-                placeholder="Details of the course structure..."
-                value={editForm.description}
-                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                className="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant dark:border-slate-800 rounded-xl p-3.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-sans text-sm transition-all placeholder:text-outline/70 dark:text-slate-100"
-              />
-            </div>
-          </div>
-        </form>
-      </Dialog>
+      {selectedClassroom && (
+        <EditClassDialog
+          isOpen={editOpen}
+          onClose={() => setEditOpen(false)}
+          classroom={selectedClassroom}
+          onSubmit={async (id, data) => {
+            await updateClassroom(id, data);
+            addToast(t('Classroom settings updated successfully!', 'کلاس روم کی ترتیبات کامیابی سے اپ ڈیٹ ہو گئیں!'), 'success');
+            await loadClassrooms();
+          }}
+          departments={departments}
+          t={t}
+        />
+      )}
 
       {/* 3. Delete Confirmation Dialog */}
       <Dialog
@@ -1187,3 +903,350 @@ export const Classes: React.FC = () => {
     </div>
   );
 };
+
+/* ================= ISOLATED MODAL COMPONENTS (ZERO-LAG TYPING) ================= */
+
+interface CreateClassDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: {
+    name: string;
+    subjectCode: string;
+    department: string;
+    section: string;
+    room: string;
+    description: string;
+    status: 'active';
+  }) => Promise<void>;
+  departments: string[];
+  t: (en: string, ur: string) => string;
+}
+
+const CreateClassDialog: React.FC<CreateClassDialogProps> = React.memo(
+  ({ isOpen, onClose, onSubmit, departments, t }) => {
+    const [name, setName] = useState('');
+    const [subjectCode, setSubjectCode] = useState('');
+    const [department, setDepartment] = useState('Physics');
+    const [section, setSection] = useState('Section A');
+    const [room, setRoom] = useState('');
+    const [description, setDescription] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // Reset fields when opening
+    useEffect(() => {
+      if (isOpen) {
+        setName('');
+        setSubjectCode('');
+        setDepartment('Physics');
+        setSection('Section A');
+        setRoom('');
+        setDescription('');
+        setError(null);
+      }
+    }, [isOpen]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!name.trim() || !subjectCode.trim() || !department) {
+        setError(t('Please fill in all required fields (Course Name, Subject Code, Department).', 'براہ کرم تمام مطلوبہ معلومات فراہم کریں۔'));
+        return;
+      }
+      setSubmitting(true);
+      setError(null);
+      try {
+        await onSubmit({
+          name: name.trim(),
+          subjectCode: subjectCode.trim().toUpperCase(),
+          department,
+          section: section.trim() || 'Section A',
+          room: room.trim(),
+          description: description.trim(),
+          status: 'active',
+        });
+        onClose();
+      } catch (err: any) {
+        setError(err.message || t('An error occurred while creating classroom.', 'کلاس روم بنانے کے دوران خرابی پیش آئی۔'));
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+    return (
+      <Dialog
+        isOpen={isOpen}
+        onClose={onClose}
+        title={t('Create New Classroom', 'نئی کلاس روم بنائیں')}
+        size="md"
+        footer={
+          <>
+            <Button
+              variant="outlined"
+              onClick={onClose}
+              className="rounded-xl border border-slate-200 dark:border-slate-800 font-sans font-semibold px-4 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+            >
+              {t('Cancel', 'کینسل')}
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-sans font-semibold px-4 flex items-center gap-1.5 cursor-pointer"
+            >
+              {submitting ? (
+                <Spinner size="xs" variant="white" />
+              ) : (
+                <Plus className="w-4 h-4" />
+              )}
+              {t('Create', 'تخلیق کریں')}
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="p-3.5 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-950/40 text-rose-600 dark:text-rose-400 text-xs font-semibold rounded-xl flex items-center gap-2">
+              <AlertCircle className="w-4.5 h-4.5 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <Input
+              label={t('Class / Course Name *', 'کلاس کا نام *')}
+              placeholder={t('e.g., Physics 101: Mechanics', 'مثال کے طور پر: فزکس ۱۰۱')}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label={t('Subject Code *', 'مضمون کوڈ *')}
+                placeholder={t('e.g., PHYS-101', 'مثال کے طور پر: PHYS-101')}
+                value={subjectCode}
+                onChange={(e) => setSubjectCode(e.target.value)}
+                required
+              />
+
+              <Input
+                label={t('Section / Batch *', 'سیکشن / بیچ *')}
+                placeholder={t('e.g., Section A, Section B, Morning', 'مثال: سیکشن اے، بی، مارننگ')}
+                value={section}
+                onChange={(e) => setSection(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Select
+                label={t('Department *', 'شعبہ جات *')}
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                options={departments.map((dept) => ({ value: dept, label: dept }))}
+              />
+
+              <Input
+                label={t('Room / Lab Location (Optional)', 'کمرہ / لیب (اختیاری)')}
+                placeholder={t('e.g., Lab 3B, Hall 102', 'مثال: لیب ۳ بی، ہال ۱۰۲')}
+                value={room}
+                onChange={(e) => setRoom(e.target.value)}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="font-sans font-semibold text-xs text-on-surface dark:text-slate-300">
+                {t('Description', 'تفصیل')}
+              </label>
+              <textarea
+                rows={3}
+                placeholder={t('e.g., Extended lectures with quantum waves and mechanics labs...', 'مثال کے طور پر: مکینکس اور کوانٹم فزکس کا نصاب...')}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant dark:border-slate-800 rounded-xl p-3.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-sans text-sm transition-colors duration-150 placeholder:text-outline/70 dark:text-slate-100"
+              />
+            </div>
+          </div>
+        </form>
+      </Dialog>
+    );
+  }
+);
+
+interface EditClassDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  classroom: Classroom;
+  onSubmit: (
+    id: string,
+    data: {
+      name: string;
+      subjectCode: string;
+      department: string;
+      section: string;
+      room: string;
+      description: string;
+      status: 'active' | 'archived';
+    }
+  ) => Promise<void>;
+  departments: string[];
+  t: (en: string, ur: string) => string;
+}
+
+const EditClassDialog: React.FC<EditClassDialogProps> = React.memo(
+  ({ isOpen, onClose, classroom, onSubmit, departments, t }) => {
+    const [name, setName] = useState(classroom.name || '');
+    const [subjectCode, setSubjectCode] = useState(classroom.subjectCode || '');
+    const [department, setDepartment] = useState(classroom.department || 'Physics');
+    const [section, setSection] = useState(classroom.section || 'Section A');
+    const [room, setRoom] = useState(classroom.room || '');
+    const [description, setDescription] = useState(classroom.description || '');
+    const [status, setStatus] = useState<'active' | 'archived'>(classroom.status || 'active');
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+      setName(classroom.name || '');
+      setSubjectCode(classroom.subjectCode || '');
+      setDepartment(classroom.department || 'Physics');
+      setSection(classroom.section || 'Section A');
+      setRoom(classroom.room || '');
+      setDescription(classroom.description || '');
+      setStatus(classroom.status || 'active');
+      setError(null);
+    }, [classroom]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!name.trim() || !subjectCode.trim() || !department) {
+        setError(t('Please fill in all required fields.', 'براہ کرم تمام مطلوبہ معلومات فراہم کریں۔'));
+        return;
+      }
+      setSubmitting(true);
+      setError(null);
+      try {
+        await onSubmit(classroom.id, {
+          name: name.trim(),
+          subjectCode: subjectCode.trim().toUpperCase(),
+          department,
+          section: section.trim() || 'Section A',
+          room: room.trim(),
+          description: description.trim(),
+          status,
+        });
+        onClose();
+      } catch (err: any) {
+        setError(err.message || t('An error occurred while updating classroom.', 'کلاس روم اپ ڈیٹ کرنے کے دوران خرابی پیش آئی۔'));
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+    return (
+      <Dialog
+        isOpen={isOpen}
+        onClose={onClose}
+        title={t('Edit Classroom & Section Details', 'کلاس اور سیکشن کی تفصیلات درست کریں')}
+        size="md"
+        footer={
+          <>
+            <Button
+              variant="outlined"
+              onClick={onClose}
+              className="rounded-xl border border-slate-200 dark:border-slate-800 font-sans font-semibold px-4 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+            >
+              {t('Cancel', 'کینسل')}
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-sans font-semibold px-4 flex items-center gap-1.5 cursor-pointer"
+            >
+              {submitting ? (
+                <Spinner size="xs" variant="white" />
+              ) : (
+                <Check className="w-4 h-4" />
+              )}
+              {t('Save Changes', 'تبدیلیاں محفوظ کریں')}
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="p-3.5 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-950/40 text-rose-600 dark:text-rose-400 text-xs font-semibold rounded-xl flex items-center gap-2">
+              <AlertCircle className="w-4.5 h-4.5 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <Input
+              label={t('Class / Course Name *', 'کلاس کا نام *')}
+              placeholder="e.g., Physics 101: Mechanics"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label={t('Subject Code *', 'مضمون کوڈ *')}
+                placeholder="e.g., PHYS-101"
+                value={subjectCode}
+                onChange={(e) => setSubjectCode(e.target.value)}
+                required
+              />
+
+              <Input
+                label={t('Section / Batch *', 'سیکشن / بیچ *')}
+                placeholder="e.g., Section A, Morning"
+                value={section}
+                onChange={(e) => setSection(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Select
+                label={t('Department *', 'شعبہ جات *')}
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                options={departments.map((dept) => ({ value: dept, label: dept }))}
+              />
+
+              <Input
+                label={t('Room / Lab Location', 'کمرہ / لیب')}
+                placeholder="e.g., Lab 3B, Hall 102"
+                value={room}
+                onChange={(e) => setRoom(e.target.value)}
+              />
+            </div>
+
+            <Select
+              label={t('Status', 'حیثیت')}
+              value={status}
+              onChange={(e) => setStatus(e.target.value as 'active' | 'archived')}
+              options={[
+                { value: 'active', label: t('Active', 'فعال') },
+                { value: 'archived', label: t('Archived', 'آرکائیو شدہ') },
+              ]}
+            />
+
+            <div className="flex flex-col gap-1.5">
+              <label className="font-sans font-semibold text-xs text-on-surface dark:text-slate-300">
+                {t('Description', 'تفصیل')}
+              </label>
+              <textarea
+                rows={3}
+                placeholder="Details of the course structure..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant dark:border-slate-800 rounded-xl p-3.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-sans text-sm transition-colors duration-150 placeholder:text-outline/70 dark:text-slate-100"
+              />
+            </div>
+          </div>
+        </form>
+      </Dialog>
+    );
+  }
+);

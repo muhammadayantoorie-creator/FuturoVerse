@@ -49,7 +49,7 @@ export const Input: React.FC<InputProps> = React.memo(({
         <input
           id={inputId}
           disabled={disabled || loading}
-          className={`w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant dark:border-slate-800 rounded-xl py-2.5 focus:outline-none focus:border-primary dark:focus:border-primary-fixed-dim focus:ring-1 focus:ring-primary dark:focus:ring-primary-fixed-dim font-sans text-sm text-slate-900 dark:text-slate-100 transition-all placeholder:text-outline/70 disabled:opacity-50 disabled:pointer-events-none ${
+          className={`w-full bg-surface-container-low dark:bg-slate-900 border border-outline-variant dark:border-slate-800 rounded-xl py-2.5 focus:outline-none focus:border-primary dark:focus:border-primary-fixed-dim focus:ring-1 focus:ring-primary dark:focus:ring-primary-fixed-dim font-sans text-sm text-slate-900 dark:text-slate-100 transition-colors duration-150 placeholder:text-outline/70 disabled:opacity-50 disabled:pointer-events-none ${
             isRtl ? 'pr-4 pl-10 text-right' : 'pl-4 pr-10 text-left'
           } ${leftElement ? (isRtl ? 'pr-10' : 'pl-10') : ''} ${
             rightElement ? (isRtl ? 'pl-10' : 'pr-10') : ''

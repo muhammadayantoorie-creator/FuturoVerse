@@ -26,7 +26,7 @@ export const Input: React.FC<InputProps> = ({
         </label>
       )}
       <input
-        className={`w-full bg-surface-container-low border border-outline-variant rounded-xl py-2.5 px-4 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-body-md text-body-md transition-all placeholder:text-outline/70 ${
+        className={`w-full bg-surface-container-low border border-outline-variant rounded-xl py-2.5 px-4 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-body-md text-body-md transition-colors duration-150 placeholder:text-outline/70 ${
           error ? 'border-error focus:ring-error focus:border-error' : ''
         } ${isRtl ? 'text-right' : 'text-left'} ${className}`}
         {...props}

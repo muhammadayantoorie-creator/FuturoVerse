@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useId } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Spinner } from './Spinner';
 
@@ -32,7 +32,8 @@ export const Select: React.FC<SelectProps> = ({
   children,
   ...props
 }) => {
-  const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
+  const generatedId = useId();
+  const selectId = id || generatedId;
 
   return (
     <div className={`w-full flex flex-col gap-1.5 ${isRtl ? 'rtl' : 'ltr'}`}>
@@ -48,7 +49,7 @@ export const Select: React.FC<SelectProps> = ({
         <select
           id={selectId}
           disabled={disabled || loading}
-          className={`w-full appearance-none bg-surface-container-low dark:bg-slate-900 border border-outline-variant dark:border-slate-800 rounded-xl py-2.5 px-4 focus:outline-none focus:border-primary dark:focus:border-primary-fixed-dim focus:ring-1 focus:ring-primary dark:focus:ring-primary-fixed-dim font-sans text-sm text-slate-900 dark:text-slate-100 transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer ${
+          className={`w-full appearance-none bg-surface-container-low dark:bg-slate-900 border border-outline-variant dark:border-slate-800 rounded-xl py-2.5 px-4 focus:outline-none focus:border-primary dark:focus:border-primary-fixed-dim focus:ring-1 focus:ring-primary dark:focus:ring-primary-fixed-dim font-sans text-sm text-slate-900 dark:text-slate-100 transition-colors duration-150 disabled:opacity-50 disabled:pointer-events-none cursor-pointer ${
             isRtl ? 'pl-10 text-right' : 'pr-10 text-left'
           } ${error ? 'border-error focus:ring-error focus:border-error' : ''} ${className}`}
           {...props}

@@ -128,7 +128,7 @@
     cursor: pointer;
   }
 
-  /* Form input cursors */
+  /* Form input cursors and zero-lag performance */
   input[type="text"],
   input[type="email"],
   input[type="password"],
@@ -136,8 +136,12 @@
   input[type="search"],
   input[type="tel"],
   input[type="url"],
+  input,
   textarea {
     cursor: text;
+    transition-property: color, background-color, border-color, box-shadow;
+    transition-duration: 150ms;
+    -webkit-font-smoothing: antialiased;
   }
 
   /* Disabled state cursors */
