@@ -164,6 +164,9 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
     if (code === 'auth/unauthorized-domain') {
       return 'This domain is not in your Firebase authorized domains list. Please sign in with Email & Password or use the 1-Click Demo.';
     }
+    if (code === 'auth/operation-not-allowed' || err?.message?.includes('operation-not-allowed')) {
+      return 'Email & Password sign-in is disabled in your Firebase console. Please enable it in Firebase Authentication > Sign-in method, or use the 1-Click Demo.';
+    }
     if (code === 'auth/invalid-email') return 'Invalid email address format.';
     if (code === 'auth/user-not-found') return 'No account found with this email.';
     if (code === 'auth/wrong-password') return 'Incorrect password. Please try again.';

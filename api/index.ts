@@ -6,29 +6,33 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { app } from '../server';
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
-  // Vercel rewrites may set req.url to "/api/index" (the destination)
-  // instead of the original path like "/api/auth/register".
-  // We must reconstruct the real URL from Vercel's internal headers.
-  const originalUrl =
-    (req.headers['x-invoke-path'] as string) ||
-    (req.headers['x-matched-path'] as string) ||
-    (req.headers['x-vercel-rewrite-url'] as string) ||
-    req.url;
+  let pathUrl = req.url || '/';
 
-  if (originalUrl) {
-    // Ensure /api prefix is present for Express route matching
-    if (!originalUrl.startsWith('/api')) {
-      req.url = `/api${originalUrl.startsWith('/') ? '' : '/'}${originalUrl}`;
-    } else {
-      req.url = originalUrl;
+  // 1. If path is query-forwarded via vercel rewrite ($1)
+  if (req.query?.path) {
+    const p = Array.isArray(req.query.path) ? req.query.path.join('/') : req.query.path;
+    pathUrl = `/api/${p}`;
+  } else if (pathUrl === '/api/index' || pathUrl === '/index' || pathUrl.startsWith('/api/index?')) {
+    // 2. Check matched path headers
+    const matchPath = (req.headers['x-matched-path'] as string) || (req.headers['x-vercel-rewrite-url'] as string);
+    const rawMatches = req.headers['x-now-route-matches'] as string;
+
+    if (matchPath && matchPath !== '/api/index' && matchPath !== '/index') {
+      pathUrl = matchPath;
+    } else if (rawMatches) {
+      const match = rawMatches.match(/1=([^&]+)/);
+      if (match && match[1]) {
+        pathUrl = `/api/${decodeURIComponent(match[1])}`;
+      }
     }
   }
 
-  // Preserve the full original query string if present
-  const queryString = req.url?.includes('?') ? '' : (req.headers['x-query-string'] as string || '');
-  if (queryString && req.url && !req.url.includes('?')) {
-    req.url = `${req.url}?${queryString}`;
+  // Ensure /api prefix is present for Express route matching
+  if (!pathUrl.startsWith('/api')) {
+    pathUrl = `/api${pathUrl.startsWith('/') ? '' : '/'}${pathUrl}`;
   }
+
+  req.url = pathUrl;
 
   return app(req as any, res as any);
 }

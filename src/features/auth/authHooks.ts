@@ -192,7 +192,7 @@ export function useLoginMutation() {
           return { user: userProfile };
         } else {
           const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || fbErr.message || 'Invalid email or password.');
+          throw new Error(errData.error || 'Invalid email or password.');
         }
       }
     },
@@ -294,7 +294,7 @@ export function useRegisterMutation() {
         } else {
           const errData = await res.json().catch(() => ({}));
           if (!userProfile) {
-            throw new Error(errData.error || firebaseError?.message || 'Registration failed. Please try again.');
+            throw new Error(errData.error || 'Registration failed. Please check your details and try again.');
           }
         }
       } catch (apiErr: any) {
