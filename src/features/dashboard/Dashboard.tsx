@@ -28,7 +28,13 @@ import {
   Mic,
   Eye,
   GitBranch,
-  Zap
+  Zap,
+  Flame,
+  Target,
+  CheckCircle2,
+  Send,
+  ArrowRight,
+  Brain
 } from 'lucide-react';
 import { VoiceTutorModal } from '@/src/features/ai-tools/VoiceTutorModal';
 import { 
@@ -169,6 +175,14 @@ export const Dashboard: React.FC = () => {
 
   // Notification Alerts toast feedback
   const [feedbackToast, setFeedbackToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  // Student Dashboard interactive states
+  const [studentQuery, setStudentQuery] = useState('');
+  const [completedTasks, setCompletedTasks] = useState<Record<string, boolean>>({
+    task1: true,
+    task2: false,
+    task3: true
+  });
 
   // Initial loads
   useEffect(() => {
@@ -346,7 +360,7 @@ export const Dashboard: React.FC = () => {
   const renderStudentDashboard = () => {
     return (
       <div className="space-y-8 select-none animate-fade-in">
-        {/* Student greeting banner */}
+        {/* Student greeting banner with Quick AI Search */}
         <div className="text-white p-8 rounded-3xl relative overflow-hidden shadow-xl" style={{ background: 'linear-gradient(135deg, #115e59 0%, #0d9488 100%)' }}>
           <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
           <div className="absolute left-1/3 bottom-0 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -361,6 +375,35 @@ export const Dashboard: React.FC = () => {
             <p className="text-teal-50/90 text-sm mt-2 max-w-xl">
               {getTranslation(locale, 'learningOverviewSub')} Keep pushing yourself to build cognitive rigor and achieve academic excellence.
             </p>
+
+            {/* Quick AI Question Bar */}
+            <form 
+              onSubmit={(e) => { 
+                e.preventDefault(); 
+                if (!studentQuery.trim()) return; 
+                askAiAboutTopic(studentQuery); 
+                setStudentQuery(''); 
+              }} 
+              className="mt-6 flex flex-col sm:flex-row gap-2.5 max-w-2xl"
+            >
+              <div className="relative flex-1">
+                <SearchIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-200/80" />
+                <input
+                  type="text"
+                  placeholder="Ask AI Tutor any concept, equation, past board question or theorem..."
+                  value={studentQuery}
+                  onChange={(e) => setStudentQuery(e.target.value)}
+                  className="w-full bg-white/20 hover:bg-white/25 focus:bg-white/30 border border-white/25 focus:border-white rounded-2xl py-3 pl-10 pr-4 text-xs text-white placeholder-emerald-100/80 focus:outline-none transition-all shadow-inner"
+                />
+              </div>
+              <button
+                type="submit"
+                className="px-5 py-3 bg-emerald-400 hover:bg-emerald-300 text-slate-950 text-xs font-black rounded-2xl flex items-center justify-center gap-2 transition-all shadow-md shrink-0 cursor-pointer hover:scale-[1.02] active:scale-95"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Ask AI Tutor</span>
+              </button>
+            </form>
           </div>
         </div>
 
@@ -523,6 +566,141 @@ export const Dashboard: React.FC = () => {
               <span>Summaries & key insights ready</span>
             </div>
           </Card>
+        </div>
+
+        {/* 🚀 Interactive Student Productivity & Daily Smart AI Widget */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Daily Streak & Study Focus Goals */}
+          <div className="lg:col-span-6">
+            <Card className="p-6 h-full bg-gradient-to-br from-amber-500/5 via-white to-white dark:from-amber-950/20 dark:via-slate-900 dark:to-slate-900 border border-amber-200/60 dark:border-amber-900/40">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-500">
+                    <Flame className="w-5 h-5 animate-bounce" />
+                  </div>
+                  <div>
+                    <h4 className="font-sans font-bold text-sm text-slate-800 dark:text-slate-100">
+                      5-Day Study Streak
+                    </h4>
+                    <p className="text-[10px] text-slate-400 font-sans">Complete daily learning goals to maintain streak</p>
+                  </div>
+                </div>
+                <Badge variant="warning" styleType="tonal" className="font-black text-xs px-2.5 py-1">
+                  🔥 Active Streak
+                </Badge>
+              </div>
+
+              <div className="space-y-2.5">
+                {[
+                  { id: 'task1', text: 'Review Week 4 Quantum Mechanics PDF takeaways', icon: BookOpen },
+                  { id: 'task2', text: 'Complete 1 Speed Duel Quiz in Battle Arena', icon: Swords },
+                  { id: 'task3', text: '25-min Focused study session on Calculus Limits', icon: Target },
+                ].map((item) => {
+                  const isDone = completedTasks[item.id];
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setCompletedTasks(prev => ({ ...prev, [item.id]: !prev[item.id] }))}
+                      className={`w-full p-3 rounded-xl border flex items-center justify-between text-left transition-all cursor-pointer ${
+                        isDone 
+                          ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50 text-slate-700 dark:text-slate-200' 
+                          : 'bg-slate-50/40 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-amber-300 dark:hover:border-amber-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                        <Icon className={`w-4 h-4 shrink-0 ${isDone ? 'text-emerald-500' : 'text-slate-400'}`} />
+                        <span className={`text-xs font-semibold truncate ${isDone ? 'line-through text-slate-400 dark:text-slate-500' : ''}`}>
+                          {item.text}
+                        </span>
+                      </div>
+                      <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 border ${
+                        isDone 
+                          ? 'bg-emerald-500 border-emerald-500 text-white' 
+                          : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900'
+                      }`}>
+                        {isDone && <Check className="w-3.5 h-3.5" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                <span className="text-[11px] font-semibold text-slate-500">
+                  {Object.values(completedTasks).filter(Boolean).length} of 3 Daily Goals Finished
+                </span>
+                <button 
+                  onClick={() => setActiveTab('quizzes')} 
+                  className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Launch Practice</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </Card>
+          </div>
+
+          {/* AI Smart Daily Concept Recommendation */}
+          <div className="lg:col-span-6">
+            <Card className="p-6 h-full bg-gradient-to-br from-indigo-500/5 via-white to-white dark:from-indigo-950/20 dark:via-slate-900 dark:to-slate-900 border border-indigo-200/60 dark:border-indigo-900/40 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-500">
+                      <Brain className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-sans font-bold text-sm text-slate-800 dark:text-slate-100">
+                        AI Recommended Focus
+                      </h4>
+                      <p className="text-[10px] text-slate-400 font-sans">Adaptive learning insight generated for you</p>
+                    </div>
+                  </div>
+                  <Badge variant="primary" styleType="tonal" className="text-xs px-2.5 py-1">
+                    Targeted Review
+                  </Badge>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-mono">
+                      Physics 101: Mechanics
+                    </span>
+                    <span className="text-[10px] font-extrabold text-rose-500 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded">
+                      Score: 38%
+                    </span>
+                  </div>
+                  <h5 className="font-sans font-bold text-xs text-slate-900 dark:text-slate-100">
+                    Wave-Particle Duality & de Broglie Wavelength (λ = h/p)
+                  </h5>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Mastering de Broglie formulas and 1D potential well nodes is essential before midterms. Reviewing the 4-point takeaway now will boost your mastery.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                <Button 
+                  variant="outlined" 
+                  size="sm" 
+                  onClick={() => askAiAboutTopic('Wave-Particle Duality and de Broglie wavelength')}
+                  className="text-xs font-bold text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/40"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Explain Topic</span>
+                </Button>
+                <Button 
+                  variant="primary" 
+                  size="sm" 
+                  onClick={() => setActiveTab('ai-tools')}
+                  className="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white"
+                >
+                  <span>Solve Drills in AI Studio</span>
+                </Button>
+              </div>
+            </Card>
+          </div>
         </div>
 
         {/* Double Column content: Left - Weak Topics, Right - Today's lessons or profile */}
