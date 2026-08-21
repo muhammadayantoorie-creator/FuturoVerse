@@ -6,7 +6,9 @@ import {
   sendPasswordResetEmail,
   onAuthStateChanged,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/src/lib/firebase';
@@ -23,7 +25,35 @@ export function useCurrentUserQuery() {
   return useQuery<UserProfile | null, Error>({
     queryKey: ['currentUser'],
     queryFn: async () => {
-      // 1. Check if user is cached in localStorage first
+      // 1. Check if user just returned from Google signInWithRedirect
+      try {
+        const redirectRes = await getRedirectResult(auth);
+        if (redirectRes && redirectRes.user) {
+          const fbUser = redirectRes.user;
+          const userDocRef = doc(db, 'users', fbUser.uid);
+          let finalRole: 'admin' | 'teacher' | 'student' = 'student';
+          let name = fbUser.displayName || 'Google User';
+          try {
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+              finalRole = userDoc.data().role || 'student';
+              name = userDoc.data().name || name;
+            }
+          } catch {}
+          const userProfile: UserProfile = {
+            id: fbUser.uid,
+            email: fbUser.email || '',
+            name,
+            role: finalRole,
+          };
+          localStorage.setItem('auth_user', JSON.stringify(userProfile));
+          return userProfile;
+        }
+      } catch (redirectErr) {
+        console.warn('Redirect auth check warning:', redirectErr);
+      }
+
+      // 2. Check if user is cached in localStorage first
       const localUserStr = localStorage.getItem('auth_user');
       let cachedUser: UserProfile | null = null;
       if (localUserStr) {
@@ -34,7 +64,7 @@ export function useCurrentUserQuery() {
         }
       }
 
-      // 2. Check Firebase Auth
+      // 3. Check Firebase Auth
       return new Promise<UserProfile | null>((resolve) => {
         let isResolved = false;
 
@@ -334,8 +364,24 @@ export function useGoogleLoginMutation() {
   return useMutation({
     mutationFn: async (role: 'student' | 'teacher' | 'admin' = 'student') => {
       const provider = new GoogleAuthProvider();
-      const userCredential = await signInWithPopup(auth, provider);
-      const fbUser = userCredential.user;
+      provider.setCustomParameters({ prompt: 'select_account' });
+
+      let fbUser;
+      try {
+        const userCredential = await signInWithPopup(auth, provider);
+        fbUser = userCredential.user;
+      } catch (popupErr: any) {
+        if (popupErr?.code === 'auth/popup-blocked') {
+          // If browser blocked the popup, initiate redirect mode
+          await signInWithRedirect(auth, provider);
+          return { user: null, redirected: true };
+        }
+        throw popupErr;
+      }
+
+      if (!fbUser) {
+        throw new Error('Google Sign-in did not complete.');
+      }
       
       const userDocRef = doc(db, 'users', fbUser.uid);
       let finalRole = role;
@@ -367,10 +413,12 @@ export function useGoogleLoginMutation() {
       };
 
       localStorage.setItem('auth_user', JSON.stringify(userProfile));
-      return { user: userProfile };
+      return { user: userProfile, redirected: false };
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(['currentUser'], data.user);
+      if (data?.user) {
+        queryClient.setQueryData(['currentUser'], data.user);
+      }
     },
   });
 }

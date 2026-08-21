@@ -154,7 +154,16 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
   }, [view]);
 
   const getFriendlyErrorMessage = (err: any) => {
-    const code = err?.code || '';
+    const code = err?.code || (typeof err?.message === 'string' && err.message.includes('popup-blocked') ? 'auth/popup-blocked' : '');
+    if (code === 'auth/popup-blocked' || err?.message?.includes('popup-blocked')) {
+      return 'Popup was blocked by your browser settings. Please allow popups for this site in your address bar, or sign in using Email & Password below.';
+    }
+    if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+      return 'Google sign-in window was closed before completion. Please try again.';
+    }
+    if (code === 'auth/unauthorized-domain') {
+      return 'This domain is not in your Firebase authorized domains list. Please sign in with Email & Password or use the 1-Click Demo.';
+    }
     if (code === 'auth/invalid-email') return 'Invalid email address format.';
     if (code === 'auth/user-not-found') return 'No account found with this email.';
     if (code === 'auth/wrong-password') return 'Incorrect password. Please try again.';
