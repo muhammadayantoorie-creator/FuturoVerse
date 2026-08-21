@@ -167,9 +167,13 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
     if (code === 'auth/invalid-email') return 'Invalid email address format.';
     if (code === 'auth/user-not-found') return 'No account found with this email.';
     if (code === 'auth/wrong-password') return 'Incorrect password. Please try again.';
-    if (code === 'auth/email-already-in-use') return 'The email address is already registered.';
+    if (code === 'auth/email-already-in-use') return 'An account with this email already exists. Please log in instead.';
     if (code === 'auth/weak-password') return 'The password is too weak. Please use at least 6 characters.';
     if (code === 'auth/invalid-credential') return 'Invalid email or password. Please try again.';
+    if (code === 'auth/too-many-requests') return 'Too many attempts. Please wait a moment and try again.';
+    if (code === 'auth/network-request-failed') return 'Network error. Please check your internet connection and try again.';
+    if (err?.message?.includes('Unable to connect')) return err.message;
+    if (err?.message?.includes('Registration failed')) return err.message;
     return err?.message || 'An unexpected error occurred. Please try again.';
   };
 
@@ -200,6 +204,7 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
         email: data.email,
         password: data.password,
         role: selectedRole,
+        departmentOrClass: data.departmentOrClass,
         rememberMe: data.rememberMe
       });
     } catch (err: any) {

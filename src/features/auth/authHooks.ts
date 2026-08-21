@@ -171,6 +171,7 @@ export function useLoginMutation() {
         const res = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
             email: emailClean,
             password: credentials.password,
@@ -204,46 +205,79 @@ export function useLoginMutation() {
 export function useRegisterMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (userData: { name: string; email: string; password: string; role: 'admin' | 'teacher' | 'student'; rememberMe?: boolean }) => {
+    mutationFn: async (userData: { name: string; email: string; password: string; role: 'admin' | 'teacher' | 'student'; departmentOrClass?: string; rememberMe?: boolean }) => {
       const emailClean = userData.email.trim().toLowerCase();
+      const nameTrimmed = userData.name.trim();
       let userProfile: UserProfile | null = null;
+      let firebaseError: any = null;
 
-      // 1. Try Firebase Auth (if configured)
+      // 1. Attempt Firebase Auth registration
       try {
-        const userCredential = await createUserWithEmailAndPassword(auth, emailClean, userData.password);
-        const fbUser = userCredential.user;
-
         try {
-          await setDoc(doc(db, 'users', fbUser.uid), {
-            name: userData.name.trim(),
-            email: emailClean,
-            role: userData.role || 'student',
-            createdAt: new Date().toISOString(),
-          });
-        } catch (fsErr) {
-          console.warn('Firestore doc write warning:', fsErr);
-        }
+          const userCredential = await createUserWithEmailAndPassword(auth, emailClean, userData.password);
+          const fbUser = userCredential.user;
 
-        userProfile = {
-          id: fbUser.uid,
-          email: emailClean,
-          name: userData.name.trim(),
-          role: userData.role || 'student',
-        };
-      } catch (fbErr: any) {
-        console.warn('Firebase registration note (registering via backend API):', fbErr?.message || fbErr);
+          // Save profile to Firestore (best-effort / non-blocking)
+          try {
+            await setDoc(doc(db, 'users', fbUser.uid), {
+              name: nameTrimmed,
+              email: emailClean,
+              role: userData.role || 'student',
+              createdAt: new Date().toISOString(),
+            });
+          } catch (fsErr) {
+            console.warn('Firestore profile write notice (non-fatal):', fsErr);
+          }
+
+          userProfile = {
+            id: fbUser.uid,
+            email: emailClean,
+            name: nameTrimmed,
+            role: userData.role || 'student',
+          };
+        } catch (fbErr: any) {
+          // If already registered in Firebase, attempt sign-in
+          if (fbErr?.code === 'auth/email-already-in-use') {
+            try {
+              const credential = await signInWithEmailAndPassword(auth, emailClean, userData.password);
+              const fbUser = credential.user;
+              userProfile = {
+                id: fbUser.uid,
+                email: emailClean,
+                name: nameTrimmed,
+                role: userData.role || 'student',
+              };
+            } catch {
+              // Ignore sign-in failure, will fall through to backend API
+            }
+          } else if (fbErr?.code === 'auth/weak-password') {
+            throw new Error('Password is too weak. Please use at least 6 characters.');
+          } else if (fbErr?.code === 'auth/invalid-email') {
+            throw new Error('Invalid email address format.');
+          } else {
+            console.warn('Firebase registration notice (falling back to backend auth API):', fbErr?.code || fbErr?.message);
+            firebaseError = fbErr;
+          }
+        }
+      } catch (err: any) {
+        if (err.message.includes('Password is too weak') || err.message.includes('Invalid email address')) {
+          throw err;
+        }
+        firebaseError = err;
       }
 
-      // 2. Register in backend API database
+      // 2. Register/Sync with Backend Session API
       try {
         const res = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
-            name: userData.name.trim(),
+            name: nameTrimmed,
             email: emailClean,
             password: userData.password,
             role: userData.role || 'student',
+            departmentOrClass: userData.departmentOrClass || '',
             rememberMe: userData.rememberMe ?? false,
           }),
         });
@@ -260,12 +294,12 @@ export function useRegisterMutation() {
         } else {
           const errData = await res.json().catch(() => ({}));
           if (!userProfile) {
-            throw new Error(errData.error || 'Failed to complete registration.');
+            throw new Error(errData.error || firebaseError?.message || 'Registration failed. Please try again.');
           }
         }
       } catch (apiErr: any) {
         if (!userProfile) {
-          throw apiErr;
+          throw new Error(apiErr?.message || 'Unable to connect to the server. Please check your connection and try again.');
         }
       }
 

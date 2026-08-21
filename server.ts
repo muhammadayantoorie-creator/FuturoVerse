@@ -21,10 +21,7 @@ const app = express();
 const PORT = 3000;
 const DB_FILE = path.join(process.cwd(), 'db.json');
 
-// Load Firebase Config
-const firebaseConfig = JSON.parse(
-  fs.readFileSync(path.join(process.cwd(), 'firebase-applet-config.json'), 'utf8')
-);
+import firebaseConfig from './firebase-applet-config.json';
 
 // Set environment variable for custom Firestore database
 if (firebaseConfig.firestoreDatabaseId) {
@@ -260,7 +257,11 @@ function getDb() {
   if (!db) {
     if (!fs.existsSync(DB_FILE)) {
       db = initialDb;
-      fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+      try {
+        fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+      } catch (err) {
+        // Read-only filesystem (e.g. Vercel serverless)
+      }
     } else {
       try {
         const data = fs.readFileSync(DB_FILE, 'utf8');
@@ -560,53 +561,70 @@ app.post('/api/auth/register', (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
     }
 
-    const emailLower = email.toLowerCase();
+    const emailLower = email.toLowerCase().trim();
+
+    // Validate role
+    const validRoles = ['student', 'teacher', 'admin'];
+    const userRole = validRoles.includes(role) ? role : 'student';
+
     const existingUser = db.users.find((u: any) => u.email.toLowerCase() === emailLower);
     if (existingUser) {
-      return res.status(400).json({ error: 'User with this email already exists.' });
+      // Already exists — return their profile as success (idempotent registration)
+      const payload = { id: existingUser.id, email: existingUser.email, role: existingUser.role, name: existingUser.name, studentId: existingUser.studentId };
+      const accessToken = generateAccessToken(payload, rememberMe);
+      const refreshToken = generateRefreshToken(payload, rememberMe);
+      res.cookie('accessToken', accessToken, { httpOnly: true, secure: true, sameSite: 'none', maxAge: rememberMe ? 7 * 24 * 3600 * 1000 : 15 * 60 * 1000 });
+      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: 'none', maxAge: rememberMe ? 30 * 24 * 3600 * 1000 : 7 * 24 * 3600 * 1000 });
+      return res.json({
+        success: true,
+        user: { id: existingUser.id, email: existingUser.email, role: existingUser.role, name: existingUser.name, studentId: existingUser.studentId }
+      });
     }
 
     const userId = `usr_${Math.random().toString(36).substring(2, 11)}`;
-    const studentId = role === 'student' ? `std_${Math.random().toString(36).substring(2, 7)}` : undefined;
+    const studentId = userRole === 'student' ? `std_${Math.random().toString(36).substring(2, 7)}` : undefined;
 
-    const newUser = {
+    const newUser: any = {
       id: userId,
       email: emailLower,
       password: bcrypt.hashSync(password, 10),
-      name,
-      role,
+      name: name.trim(),
+      role: userRole,
       studentId,
       createdAt: new Date().toISOString()
     };
 
     db.users.push(newUser);
-    saveDb(db);
+
+    // Save DB — on Vercel this may fail (read-only FS), but user is in memory cache
+    try {
+      saveDb(db);
+    } catch (saveErr) {
+      // Keep in-memory cache even if file write fails (Vercel serverless)
+      cachedDb = db;
+      console.warn('DB file write skipped (likely read-only FS on serverless):', saveErr);
+    }
 
     const payload = { id: newUser.id, email: newUser.email, role: newUser.role, name: newUser.name, studentId: newUser.studentId };
     const accessToken = generateAccessToken(payload, rememberMe);
     const refreshToken = generateRefreshToken(payload, rememberMe);
 
     res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      httpOnly: true, secure: true, sameSite: 'none',
       maxAge: rememberMe ? 7 * 24 * 3600 * 1000 : 15 * 60 * 1000
     });
-
     res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      httpOnly: true, secure: true, sameSite: 'none',
       maxAge: rememberMe ? 30 * 24 * 3600 * 1000 : 7 * 24 * 3600 * 1000
     });
 
-    res.json({
+    return res.json({
       success: true,
       user: { id: newUser.id, email: newUser.email, role: newUser.role, name: newUser.name, studentId: newUser.studentId }
     });
   } catch (error: any) {
     console.error('Registration error:', error);
-    res.status(500).json({ error: 'Internal server error during registration.' });
+    res.status(500).json({ error: 'Server error during registration. Please try again.' });
   }
 });
 
