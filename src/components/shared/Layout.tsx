@@ -55,7 +55,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, onNavigateToLanding })
   } = useAppStore();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
@@ -121,16 +120,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, onNavigateToLanding })
     }
   };
 
-  const handleRoleChange = (role: Role) => {
-    setRole(role);
-    setIsRoleDropdownOpen(false);
-  };
-
   const currentRoleLabel = () => {
-    if (currentRole === 'admin') return '🛡️ Admin (All Access)';
-    if (currentRole === 'teacher') return `👨‍🏫 ${getTranslation(locale, 'roleTeacher')}`;
-    if (currentRole === 'student') return `🎓 ${getTranslation(locale, 'roleStudent')}`;
-    return getTranslation(locale, 'roleGuest');
+    if (currentRole === 'admin') return `🛡️ ${getTranslation(locale, 'roleAdmin') || 'Administrator'}`;
+    if (currentRole === 'teacher') return `👨‍🏫 ${getTranslation(locale, 'roleTeacher') || 'Teacher'}`;
+    if (currentRole === 'student') return `🎓 ${getTranslation(locale, 'roleStudent') || 'Student'}`;
+    return `👤 ${getTranslation(locale, 'roleGuest') || 'Guest'}`;
   };
 
   // Filter items strictly based on role
@@ -321,44 +315,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, onNavigateToLanding })
               </button>
             )}
 
-            {/* Quick Role Switch Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-bold font-sans text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
-              >
-                <span>{currentRoleLabel()}</span>
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-
-              {isRoleDropdownOpen && (
-                <div className={`absolute top-10 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-1.5 flex flex-col gap-1 z-50 ${isRtl ? 'left-0' : 'right-0'}`}>
-                  <div className="px-2 py-1 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100 dark:border-slate-700/60">
-                    Switch Active View:
-                  </div>
-                  <button 
-                    onClick={() => handleRoleChange('teacher')}
-                    className={`px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 text-left select-none cursor-pointer flex items-center gap-2 ${isRtl ? 'text-right' : 'text-left'}`}
-                  >
-                    <span>👨‍🏫</span>
-                    <span>Teacher Section</span>
-                  </button>
-                  <button 
-                    onClick={() => handleRoleChange('student')}
-                    className={`px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 text-left select-none cursor-pointer flex items-center gap-2 ${isRtl ? 'text-right' : 'text-left'}`}
-                  >
-                    <span>🎓</span>
-                    <span>Student Section</span>
-                  </button>
-                  <button 
-                    onClick={() => handleRoleChange('admin')}
-                    className={`px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 text-left select-none cursor-pointer flex items-center gap-2 ${isRtl ? 'text-right' : 'text-left'}`}
-                  >
-                    <span>🛡️</span>
-                    <span>Admin (All Access)</span>
-                  </button>
-                </div>
-              )}
+            {/* Active Role Indicator Badge (Strict RBAC Lock) */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 dark:bg-emerald-400/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 rounded-xl text-xs font-bold font-sans select-none shadow-xs">
+              <span>{currentRoleLabel()}</span>
             </div>
 
             {/* Language Switch */}
