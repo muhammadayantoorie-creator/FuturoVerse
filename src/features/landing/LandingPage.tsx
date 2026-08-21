@@ -29,7 +29,10 @@ import {
   Sliders, 
   Layers, 
   ExternalLink,
-  ChevronDown
+  ChevronDown,
+  Star,
+  Building2,
+  Flame
 } from 'lucide-react';
 import { useAppStore } from '@/src/store/useAppStore';
 import { Role } from '@/src/types';
@@ -46,10 +49,38 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth, onEx
   // Interactive Persona Preview Tab
   const [activePersona, setActivePersona] = useState<'teacher' | 'student' | 'admin'>('teacher');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
+
+  // Inline PricingToggle sub-component
+  const PricingToggle = () => (
+    <div className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200 dark:border-slate-700 mt-2">
+      <button
+        onClick={() => setBillingPeriod('monthly')}
+        className={`px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          billingPeriod === 'monthly'
+            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+        }`}
+      >
+        Monthly
+      </button>
+      <button
+        onClick={() => setBillingPeriod('yearly')}
+        className={`px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+          billingPeriod === 'yearly'
+            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+        }`}
+      >
+        Yearly
+        <span className="bg-emerald-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-black">-17%</span>
+      </button>
+    </div>
+  );
 
   return (
     <div 
@@ -95,6 +126,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth, onEx
             </a>
             <a href="#faq" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
               {isRtl ? 'عام سوالات' : 'FAQ'}
+            </a>
+            <a href="#pricing" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-black text-emerald-700 dark:text-emerald-400">
+              {isRtl ? 'قیمتیں' : 'Pricing'}
             </a>
           </nav>
 
@@ -843,6 +877,217 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth, onEx
                     {faqItem.a}
                   </div>
                 )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 8. PRICING SECTION */}
+      <section id="pricing" className="py-20 border-t border-slate-200/80 dark:border-slate-800/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center space-y-4 mb-14">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
+              <Flame className="w-3.5 h-3.5 animate-pulse" />
+              <span>{isRtl ? '5 مفت ٹرائلز شامل ہیں' : '5 Free AI Uses Included — No Credit Card Required'}</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+              {isRtl ? 'سادہ اور شفاف قیمتیں' : 'Simple, Transparent Pricing'}
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
+              {isRtl
+                ? 'پہلے 5 بار مفت استعمال کریں۔ کوئی کریڈٹ کارڈ نہیں چاہیے۔ پھر اپنی ضرورت کے مطابق پلان منتخب کریں۔'
+                : 'Start completely free — 5 AI-powered uses included on sign-up. No credit card needed. Upgrade when you are ready to unlock the full platform.'}
+            </p>
+
+            {/* Monthly / Yearly toggle */}
+            <PricingToggle />
+          </div>
+
+          {/* Pricing Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-start">
+
+            {/* FREE TRIAL CARD */}
+            <div className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-7 flex flex-col gap-6 relative overflow-hidden hover:shadow-xl transition-shadow">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-slate-100/50 dark:bg-slate-800/30 rounded-full blur-3xl pointer-events-none" />
+              <div>
+                <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 mb-4">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white">Free Trial</h3>
+                <p className="text-xs text-slate-400 mt-1">Perfect to explore &amp; test the platform</p>
+              </div>
+              <div className="flex items-end gap-1">
+                <span className="text-5xl font-black text-slate-900 dark:text-white">Rs 0</span>
+                <span className="text-slate-400 text-sm mb-1.5">/forever</span>
+              </div>
+              <div className="space-y-2.5">
+                {[
+                  '5 free AI generations (quizzes, summaries, flashcards)',
+                  '1 classroom creation',
+                  'AI Chatbot (5 queries)',
+                  'Vision Solver (5 uploads)',
+                  'Mind Map Generator (5 maps)',
+                  'Basic analytics dashboard',
+                  'No credit card required',
+                ].map((feat, i) => (
+                  <div key={i} className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <span className="text-xs text-slate-600 dark:text-slate-300">{feat}</span>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => onNavigateToAuth('register')}
+                className="mt-auto w-full py-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
+              >
+                Start Free — No Card Needed
+              </button>
+              <p className="text-center text-[10px] text-slate-400">Trial resets once. Upgrade any time.</p>
+            </div>
+
+            {/* PRO CARD (highlighted) */}
+            <div className="rounded-3xl border-2 border-emerald-500 bg-gradient-to-b from-emerald-600 via-teal-600 to-emerald-700 text-white p-7 flex flex-col gap-6 relative overflow-hidden shadow-2xl shadow-emerald-500/25 scale-[1.03]">
+              {/* Most Popular Badge */}
+              <div className="absolute top-5 right-5">
+                <span className="flex items-center gap-1 px-2.5 py-1 bg-white/20 backdrop-blur-sm rounded-full text-[10px] font-black uppercase tracking-wider">
+                  <Star className="w-3 h-3 fill-amber-300 text-amber-300" />
+                  Most Popular
+                </span>
+              </div>
+              <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+              <div>
+                <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center mb-4">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-black">Pro Educator</h3>
+                <p className="text-xs text-emerald-100 mt-1">For individual teachers &amp; tutors</p>
+              </div>
+              <div className="flex items-end gap-1">
+                <span className="text-5xl font-black">Rs 1,499</span>
+                <span className="text-emerald-200 text-sm mb-1.5">/month</span>
+              </div>
+              <div className="text-xs text-emerald-200 -mt-4">Rs 14,990/year — save 2 months free</div>
+              <div className="space-y-2.5">
+                {[
+                  'Unlimited AI quiz & material generation',
+                  'Unlimited classrooms & students',
+                  'AI Voice Tutor (unlimited sessions)',
+                  'Vision Solver (unlimited uploads)',
+                  'AI Gradebook with smart analytics',
+                  'AI-powered feedback & rubric engine',
+                  'PDF export & bulk download',
+                  'Priority AI response speed',
+                  'Bilingual Urdu + English support',
+                ].map((feat, i) => (
+                  <div key={i} className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-200 shrink-0 mt-0.5" />
+                    <span className="text-xs text-white/90">{feat}</span>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => onNavigateToAuth('register')}
+                className="mt-auto w-full py-3.5 rounded-2xl bg-white text-emerald-700 font-black text-sm hover:bg-emerald-50 transition-all shadow-lg active:scale-95 cursor-pointer"
+              >
+                Start 5-Day Free Trial → Upgrade
+              </button>
+              <p className="text-center text-[10px] text-emerald-200">Cancel anytime. No lock-in contracts.</p>
+            </div>
+
+            {/* INSTITUTION CARD */}
+            <div className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-7 flex flex-col gap-6 relative overflow-hidden hover:shadow-xl transition-shadow">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-100/40 dark:bg-indigo-900/20 rounded-full blur-3xl pointer-events-none" />
+              <div>
+                <div className="w-10 h-10 rounded-2xl bg-indigo-100 dark:bg-indigo-950/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-4">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white">Institution</h3>
+                <p className="text-xs text-slate-400 mt-1">For schools, colleges &amp; universities</p>
+              </div>
+              <div className="flex items-end gap-1">
+                <span className="text-4xl font-black text-slate-900 dark:text-white">Custom</span>
+              </div>
+              <div className="text-xs text-indigo-600 dark:text-indigo-400 -mt-4 font-bold">Contact us for institutional pricing</div>
+              <div className="space-y-2.5">
+                {[
+                  'Everything in Pro (all teachers)',
+                  'Admin dashboard with full control',
+                  'Multi-campus & department management',
+                  'FBISE / HEC board curriculum templates',
+                  'Dedicated onboarding & training session',
+                  'Custom AI model fine-tuning on syllabus',
+                  'SLA-backed uptime guarantee',
+                  'Invoice & purchase order billing',
+                ].map((feat, i) => (
+                  <div key={i} className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+                    <span className="text-xs text-slate-600 dark:text-slate-300">{feat}</span>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => onNavigateToAuth('register')}
+                className="mt-auto w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all shadow-md active:scale-95 cursor-pointer"
+              >
+                Contact for Quote
+              </button>
+              <p className="text-center text-[10px] text-slate-400">Flexible per-seat pricing available.</p>
+            </div>
+          </div>
+
+          {/* Feature comparison table (key points) */}
+          <div className="mt-14 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div className="bg-slate-50 dark:bg-slate-900/60 px-6 py-4 border-b border-slate-200 dark:border-slate-800">
+              <h4 className="font-black text-sm text-slate-800 dark:text-slate-100">Feature Comparison</h4>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+                    <th className="text-left px-6 py-3 font-bold text-slate-500 dark:text-slate-400 w-1/2">Feature</th>
+                    <th className="text-center px-4 py-3 font-bold text-slate-600 dark:text-slate-300">Free</th>
+                    <th className="text-center px-4 py-3 font-black text-emerald-600 dark:text-emerald-400">Pro</th>
+                    <th className="text-center px-4 py-3 font-bold text-indigo-600 dark:text-indigo-400">Institution</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {[
+                    ['AI Quiz Generation', '5 uses', 'Unlimited', 'Unlimited'],
+                    ['Classrooms', '1', 'Unlimited', 'Unlimited'],
+                    ['AI Voice Tutor', '5 sessions', 'Unlimited', 'Unlimited'],
+                    ['Vision Solver (photo)', '5 uploads', 'Unlimited', 'Unlimited'],
+                    ['Mind Map Generator', '5 maps', 'Unlimited', 'Unlimited'],
+                    ['Gradebook Analytics', 'Basic', 'Advanced AI', 'Enterprise'],
+                    ['PDF / Bulk Export', '✗', '✓', '✓'],
+                    ['Admin Dashboard', '✗', '✗', '✓'],
+                    ['Priority AI Speed', '✗', '✓', '✓'],
+                    ['Custom Curriculum AI', '✗', '✗', '✓'],
+                  ].map(([feature, free, pro, inst], i) => (
+                    <tr key={i} className="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="px-6 py-3 font-semibold text-slate-700 dark:text-slate-200">{feature}</td>
+                      <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">{free}</td>
+                      <td className="px-4 py-3 text-center font-bold text-emerald-600 dark:text-emerald-400">{pro}</td>
+                      <td className="px-4 py-3 text-center font-bold text-indigo-600 dark:text-indigo-400">{inst}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Trust indicators */}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 dark:text-slate-400">
+            {[
+              { icon: ShieldCheck, text: 'No credit card for free trial' },
+              { icon: Lock, text: 'Cancel Pro anytime, no penalty' },
+              { icon: Award, text: 'FBISE & HEC compliant platform' },
+              { icon: Globe, text: 'Bilingual Urdu + English content' },
+            ].map(({ icon: Icon, text }, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <Icon className="w-4 h-4 text-emerald-500" />
+                <span className="font-semibold">{text}</span>
               </div>
             ))}
           </div>
