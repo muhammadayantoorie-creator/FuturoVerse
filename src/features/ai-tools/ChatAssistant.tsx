@@ -8,7 +8,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { 
   Sparkles, Plus, Send, Trash2, Edit2, Check, X, ArrowUpRight, 
-  MessageSquare, Menu, Copy, CheckCircle2, Loader2, HelpCircle, AlertCircle
+  MessageSquare, Menu, Copy, CheckCircle2, Loader2, HelpCircle, AlertCircle,
+  Mic, MicOff, Volume2, VolumeX
 } from 'lucide-react';
 
 interface ChatMessage {
@@ -178,9 +179,84 @@ const ChatAssistantComponent: React.FC = () => {
   // Inline rename state
   const [editingChatId, setEditingChatId] = useState<string>('');
   const [renameTitle, setRenameTitle] = useState<string>('');
+  
+  // Voice STT / TTS state
+  const [isListening, setIsListening] = useState<boolean>(false);
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const streamAbortControllerRef = useRef<AbortController | null>(null);
+
+  // Speech Recognition handler
+  const toggleSpeechRecognition = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Speech recognition is not supported in this browser. Please use Chrome or Edge.');
+      return;
+    }
+
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInputText((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        setIsListening(false);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.error('Failed to start speech recognition', err);
+      setIsListening(false);
+    }
+  };
+
+  // Text-to-speech handler
+  const toggleSpeak = (id: string, text: string) => {
+    if (!('speechSynthesis' in window)) {
+      alert('Text-to-speech is not supported in this browser.');
+      return;
+    }
+
+    if (speakingMessageId === id) {
+      window.speechSynthesis.cancel();
+      setSpeakingMessageId(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const clean = text.replace(/<[^>]*>/g, '').replace(/[*#`_~]/g, '');
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    utterance.onend = () => setSpeakingMessageId(null);
+    utterance.onerror = () => setSpeakingMessageId(null);
+
+    setSpeakingMessageId(id);
+    window.speechSynthesis.speak(utterance);
+  };
 
   // Load conversations on mount
   useEffect(() => {
@@ -656,8 +732,27 @@ const ChatAssistantComponent: React.FC = () => {
                       {msg.text}
                     </ReactMarkdown>
                   </div>
-                  <div className={`text-[9px] text-slate-400 font-mono mt-1.5 ${isUser ? 'text-right' : 'text-left'}`}>
-                    {msg.timestamp}
+                  <div className={`text-[9px] text-slate-400 font-mono mt-1.5 flex items-center gap-2 ${isUser ? 'justify-end' : 'justify-between'}`}>
+                    <span>{msg.timestamp}</span>
+                    {!isUser && (
+                      <button
+                        onClick={() => toggleSpeak(msg.id, msg.text)}
+                        title={speakingMessageId === msg.id ? "Stop voice narration" : "Listen to AI voice"}
+                        className="p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer flex items-center gap-1"
+                      >
+                        {speakingMessageId === msg.id ? (
+                          <>
+                            <VolumeX className="w-3 h-3 text-rose-500 animate-pulse" />
+                            <span className="text-[9px] text-rose-500 font-sans">Stop Audio</span>
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="w-3 h-3" />
+                            <span className="text-[9px] font-sans">Listen</span>
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -724,16 +819,31 @@ const ChatAssistantComponent: React.FC = () => {
               e.preventDefault();
               handleSend(inputText);
             }}
-            className="flex items-center gap-3 relative"
+            className="flex items-center gap-2 relative"
           >
             <input
               type="text"
               value={inputText}
               onChange={handleInputChange}
-              placeholder="Ask anything (e.g. Write a quiz, explain calculus, outline syllabus)..."
+              placeholder={isListening ? "Listening to your voice..." : "Ask anything (e.g. Write a quiz, explain calculus, outline syllabus)..."}
               disabled={isStreaming}
-              className="flex-grow bg-slate-50 focus:bg-white dark:bg-slate-950 dark:focus:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-2xl py-3.5 px-4 text-xs md:text-sm outline-none text-slate-800 dark:text-slate-100 placeholder-slate-400 transition-all pr-12"
+              className={`flex-grow bg-slate-50 focus:bg-white dark:bg-slate-950 dark:focus:bg-slate-950 border ${isListening ? 'border-rose-500 ring-2 ring-rose-500/20 animate-pulse' : 'border-slate-200 dark:border-slate-800 focus:border-indigo-500'} rounded-2xl py-3.5 px-4 text-xs md:text-sm outline-none text-slate-800 dark:text-slate-100 placeholder-slate-400 transition-all pr-24`}
             />
+
+            {/* Voice STT Button */}
+            <button
+              type="button"
+              onClick={toggleSpeechRecognition}
+              title={isListening ? "Stop listening" : "Speak to AI"}
+              className={`absolute right-12 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all cursor-pointer ${
+                isListening 
+                  ? 'bg-rose-500 text-white animate-pulse shadow-md' 
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400'
+              }`}
+            >
+              {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            </button>
+
             {isStreaming ? (
               <button
                 type="button"
@@ -741,7 +851,7 @@ const ChatAssistantComponent: React.FC = () => {
                 title="Stop generation"
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-rose-600 text-white hover:bg-rose-700 transition-all cursor-pointer shadow-xs"
               >
-                <X className="w-4.5 h-4.5" />
+                <X className="w-4 h-4" />
               </button>
             ) : (
               <button
@@ -750,12 +860,14 @@ const ChatAssistantComponent: React.FC = () => {
                 title="Send query"
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-100 disabled:text-slate-400 text-white transition-all cursor-pointer shadow-xs"
               >
-                <Send className="w-4.5 h-4.5" />
+                <Send className="w-4 h-4" />
               </button>
             )}
           </form>
-          <div className="text-[10px] text-slate-400 font-sans text-center">
-            Double-click or click pencil icon on conversation list item to rename. Trash bin icon deletes chat securely.
+          <div className="text-[10px] text-slate-400 font-sans text-center flex items-center justify-center gap-3">
+            <span>🎙️ Click Mic to speak</span>
+            <span>•</span>
+            <span>🔊 Click Listen to hear AI responses</span>
           </div>
         </div>
 

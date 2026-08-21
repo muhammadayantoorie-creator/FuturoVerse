@@ -623,3 +623,137 @@ export function exportGradebookToPdf(data: GradebookPdfData): void {
   addFooter();
   doc.save(`Official_Gradebook_Marksheet_${new Date().toISOString().split('T')[0]}.pdf`);
 }
+
+/**
+ * 4. Export Academic Achievement Certificate to PDF
+ */
+export interface CertificatePdfData {
+  studentName: string;
+  quizTitle: string;
+  courseName?: string;
+  scorePercentage: number;
+  date?: string;
+  certificateId?: string;
+}
+
+export function exportCertificateToPdf(data: CertificatePdfData): void {
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'pt',
+    format: 'a4'
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth(); // 841.89 pt
+  const pageHeight = doc.internal.pageSize.getHeight(); // 595.28 pt
+  const certId = data.certificateId || `FV-CERT-${Math.floor(100000 + Math.random() * 900000)}`;
+  const certDate = data.date || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  // Background gradient-like subtle fill
+  doc.setFillColor(253, 253, 254);
+  doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+  // Outer Border (Indigo/Gold Royal frame)
+  doc.setDrawColor(79, 70, 229); // Indigo 600
+  doc.setLineWidth(4);
+  doc.rect(20, 20, pageWidth - 40, pageHeight - 40, 'S');
+
+  // Inner Thin Gold/Amber Border
+  doc.setDrawColor(217, 119, 6); // Amber 600
+  doc.setLineWidth(1.5);
+  doc.rect(28, 28, pageWidth - 56, pageHeight - 56, 'S');
+
+  // Corner Decorative Accents
+  const cornerSize = 25;
+  doc.setFillColor(79, 70, 229);
+  doc.rect(24, 24, cornerSize, 4, 'F');
+  doc.rect(24, 24, 4, cornerSize, 'F');
+  doc.rect(pageWidth - 24 - cornerSize, 24, cornerSize, 4, 'F');
+  doc.rect(pageWidth - 28, 24, 4, cornerSize, 'F');
+  doc.rect(24, pageHeight - 28, cornerSize, 4, 'F');
+  doc.rect(24, pageHeight - 24 - cornerSize, 4, cornerSize, 'F');
+  doc.rect(pageWidth - 24 - cornerSize, pageHeight - 28, cornerSize, 4, 'F');
+  doc.rect(pageWidth - 28, pageHeight - 24 - cornerSize, 4, cornerSize, 'F');
+
+  // Header Title
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(79, 70, 229);
+  doc.text('FUTUROVERSE ACADEMIC EXCELLENCE NETWORK', pageWidth / 2, 75, { align: 'center' });
+
+  doc.setFontSize(28);
+  doc.setTextColor(15, 23, 42); // Slate 900
+  doc.text('CERTIFICATE OF ACHIEVEMENT', pageWidth / 2, 115, { align: 'center' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(12);
+  doc.setTextColor(100, 116, 139);
+  doc.text('This is proudly awarded to', pageWidth / 2, 145, { align: 'center' });
+
+  // Student Name
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(24);
+  doc.setTextColor(16, 185, 129); // Emerald 600
+  doc.text(data.studentName || 'Student Achiever', pageWidth / 2, 185, { align: 'center' });
+
+  // Underline for name
+  doc.setDrawColor(16, 185, 129);
+  doc.setLineWidth(1);
+  doc.line(pageWidth / 2 - 150, 195, pageWidth / 2 + 150, 195);
+
+  // Description
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(12);
+  doc.setTextColor(71, 85, 105);
+  doc.text('for outstanding performance and successful completion of', pageWidth / 2, 225, { align: 'center' });
+
+  // Quiz / Course Title
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(30, 41, 59);
+  doc.text(`"${cleanText(data.quizTitle)}"`, pageWidth / 2, 255, { align: 'center' });
+
+  // Score Badge
+  doc.setFillColor(236, 253, 245);
+  doc.setDrawColor(52, 211, 153);
+  doc.roundedRect(pageWidth / 2 - 90, 280, 180, 40, 8, 8, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(5, 150, 105);
+  doc.text(`Score: ${data.scorePercentage}% | Grade: ${data.scorePercentage >= 90 ? 'A+' : data.scorePercentage >= 80 ? 'A' : 'B'}`, pageWidth / 2, 305, { align: 'center' });
+
+  // Footer / Signatures
+  const footerY = 440;
+
+  // Left: Date & ID
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Issue Date: ${certDate}`, 70, footerY);
+  doc.text(`Verification ID: ${certId}`, 70, footerY + 16);
+
+  // Center: Verified Seal / Emblem
+  doc.setFillColor(254, 243, 199); // Amber light
+  doc.setDrawColor(245, 158, 11); // Amber 500
+  doc.circle(pageWidth / 2, footerY - 5, 28, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(180, 83, 9);
+  doc.text('OFFICIAL', pageWidth / 2, footerY - 10, { align: 'center' });
+  doc.text('VERIFIED', pageWidth / 2, footerY + 2, { align: 'center' });
+
+  // Right: Academic Director Signature Line
+  doc.setDrawColor(148, 163, 184);
+  doc.line(pageWidth - 240, footerY - 5, pageWidth - 70, footerY - 5);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(51, 65, 85);
+  doc.text('FuturoVerse AI Academic Board', pageWidth - 155, footerY + 12, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(148, 163, 184);
+  doc.text('Authorized Signature & Validation', pageWidth - 155, footerY + 24, { align: 'center' });
+
+  doc.save(`FuturoVerse_Certificate_${certId}.pdf`);
+}
+

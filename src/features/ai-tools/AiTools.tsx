@@ -11,14 +11,65 @@ import remarkGfm from 'remark-gfm';
 import { 
   BookOpen, HelpCircle, FileText, Layers, Flame, GitBranch, PenTool,
   Copy, Check, Download, RefreshCw, Save, Loader2, Sparkles, AlertCircle,
-  Globe, BarChart2, ShieldAlert, Trash2, ArrowUpRight, CheckCircle2, FileUp, X, Plus
+  Globe, BarChart2, ShieldAlert, Trash2, ArrowUpRight, CheckCircle2, FileUp, X, Plus,
+  Volume2, VolumeX, RotateCw, Shuffle, ChevronLeft, ChevronRight, Play, Mic, Eye
 } from 'lucide-react';
 import { ChatAssistant } from './ChatAssistant';
+import { MultimodalSolver } from './MultimodalSolver';
+import { MindMapStudio } from './MindMapStudio';
+import { VoiceTutorModal } from './VoiceTutorModal';
 
 interface Material {
   id: string;
   fileName: string;
   courseName: string;
+}
+
+interface FlashcardItem {
+  front: string;
+  back: string;
+  rating?: 'easy' | 'medium' | 'hard';
+}
+
+function parseFlashcardsFromMarkdown(text: string): FlashcardItem[] {
+  if (!text) return [];
+  const cards: FlashcardItem[] = [];
+  const sections = text.split(/(?:###\s*(?:Card|\d+)|(?:\*\*Card\s*\d+\*\*)|(?:---\n)|(?:\d+\.\s*\*\*))/i);
+  
+  for (const sec of sections) {
+    const trimmed = sec.trim();
+    if (!trimmed) continue;
+    
+    const frontMatch = trimmed.match(/(?:Front|Question|Q|Term|Concept)\s*[:*-]\s*([\s\S]*?)(?=(?:Back|Answer|A|Definition|Explanation)\s*[:*-]|$)/i);
+    const backMatch = trimmed.match(/(?:Back|Answer|A|Definition|Explanation)\s*[:*-]\s*([\s\S]*)/i);
+    
+    if (frontMatch && backMatch) {
+      cards.push({
+        front: frontMatch[1].replace(/[*#`_~]/g, '').trim(),
+        back: backMatch[1].replace(/[*#`_~]/g, '').trim()
+      });
+    } else {
+      const lines = trimmed.split('\n').map(l => l.trim()).filter(Boolean);
+      if (lines.length >= 2) {
+        cards.push({
+          front: lines[0].replace(/[*#`_~]/g, '').trim(),
+          back: lines.slice(1).join(' ').replace(/[*#`_~]/g, '').trim()
+        });
+      }
+    }
+  }
+  
+  if (cards.length === 0 && text.length > 50) {
+    const paragraphs = text.split('\n\n').filter(p => p.trim().length > 20);
+    paragraphs.forEach((p) => {
+      const parts = p.split('?');
+      if (parts.length >= 2) {
+        cards.push({ front: `${parts[0].trim()}?`, back: parts.slice(1).join('?').trim() });
+      }
+    });
+  }
+  
+  return cards;
 }
 
 interface SavedItem {
@@ -46,7 +97,8 @@ export const AiTools: React.FC = () => {
   const { locale } = useAppStore();
   
   // App States
-  const [activeSubTab, setActiveSubTab] = useState<'chat' | 'workspace' | 'saved'>('chat');
+  const [activeSubTab, setActiveSubTab] = useState<'chat' | 'vision' | 'mindmap' | 'workspace' | 'saved'>('chat');
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState<boolean>(false);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [selectedMaterialId, setSelectedMaterialId] = useState<string>('');
   const [customTopic, setCustomTopic] = useState<string>('');
@@ -69,8 +121,58 @@ export const AiTools: React.FC = () => {
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
   const [activeSavedItem, setActiveSavedItem] = useState<SavedItem | null>(null);
 
+  // Flashcard Deck Player States
+  const [flashcardDeck, setFlashcardDeck] = useState<FlashcardItem[]>([]);
+  const [currentCardIdx, setCurrentCardIdx] = useState<number>(0);
+  const [isCardFlipped, setIsCardFlipped] = useState<boolean>(false);
+  const [cardRatings, setCardRatings] = useState<Record<number, 'easy' | 'medium' | 'hard'>>({});
+  const [flashcardViewMode, setFlashcardViewMode] = useState<'deck' | 'raw'>('deck');
+
+  // Audio Voice Narration
+  const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+
   const abortControllerRef = useRef<AbortController | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Parse flashcards whenever content changes and activeTask is 'flashcards'
+  useEffect(() => {
+    const activeText = activeSavedItem ? activeSavedItem.content : content;
+    if (activeText && (activeTask === 'flashcards' || (activeSavedItem && activeSavedItem.task === 'flashcards'))) {
+      const parsed = parseFlashcardsFromMarkdown(activeText);
+      setFlashcardDeck(parsed);
+      setCurrentCardIdx(0);
+      setIsCardFlipped(false);
+    }
+  }, [content, activeSavedItem, activeTask]);
+
+  // Audio playback toggle
+  const toggleAudioNarration = () => {
+    if (!('speechSynthesis' in window)) {
+      alert('Text-to-speech is not supported in this browser.');
+      return;
+    }
+
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    const rawText = activeSavedItem ? activeSavedItem.content : content;
+    if (!rawText) return;
+
+    window.speechSynthesis.cancel();
+    const clean = rawText.replace(/<[^>]*>/g, '').replace(/[*#`_~]/g, '');
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    setIsSpeaking(true);
+    window.speechSynthesis.speak(utterance);
+  };
 
   // Fetch materials and saved items on load
   useEffect(() => {
@@ -358,39 +460,68 @@ export const AiTools: React.FC = () => {
           </p>
         </div>
 
-        {/* Tab Controls */}
-        <div className="flex bg-slate-800/80 p-1 rounded-2xl border border-slate-700/80 self-stretch md:self-auto overflow-x-auto shrink-0 gap-1">
+        {/* Tab Controls & Voice Launcher */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Voice Companion Quick Launch Button */}
           <button
-            onClick={() => { setActiveSubTab('chat'); }}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeSubTab === 'chat' ? 'bg-indigo-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
+            onClick={() => setIsVoiceModalOpen(true)}
+            className="px-3.5 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-2xl text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 cursor-pointer"
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            AI Chatbot
+            <Mic className="w-3.5 h-3.5 animate-pulse" />
+            <span>AI Voice Tutor</span>
           </button>
-          <button
-            onClick={() => { setActiveSubTab('workspace'); }}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeSubTab === 'workspace' ? 'bg-indigo-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
-          >
-            <PenTool className="w-3.5 h-3.5" />
-            AI Studio Workspace
-          </button>
-          <button
-            onClick={() => { setActiveSubTab('saved'); }}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-2 relative cursor-pointer ${activeSubTab === 'saved' ? 'bg-indigo-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
-          >
-            <Save className="w-3.5 h-3.5" />
-            Saved Library
-            {savedItems.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                {savedItems.length}
-              </span>
-            )}
-          </button>
+
+          <div className="flex bg-slate-800/80 p-1 rounded-2xl border border-slate-700/80 self-stretch md:self-auto overflow-x-auto shrink-0 gap-1">
+            <button
+              onClick={() => { setActiveSubTab('chat'); }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${activeSubTab === 'chat' ? 'bg-indigo-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              AI Chatbot
+            </button>
+            <button
+              onClick={() => { setActiveSubTab('vision'); }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${activeSubTab === 'vision' ? 'bg-emerald-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
+            >
+              <Eye className="w-3.5 h-3.5 text-emerald-400" />
+              Vision Solver
+            </button>
+            <button
+              onClick={() => { setActiveSubTab('mindmap'); }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${activeSubTab === 'mindmap' ? 'bg-purple-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
+            >
+              <GitBranch className="w-3.5 h-3.5 text-purple-400" />
+              Mind Map
+            </button>
+            <button
+              onClick={() => { setActiveSubTab('workspace'); }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${activeSubTab === 'workspace' ? 'bg-indigo-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
+            >
+              <PenTool className="w-3.5 h-3.5" />
+              AI Studio
+            </button>
+            <button
+              onClick={() => { setActiveSubTab('saved'); }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 relative cursor-pointer ${activeSubTab === 'saved' ? 'bg-indigo-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
+            >
+              <Save className="w-3.5 h-3.5" />
+              Library
+              {savedItems.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                  {savedItems.length}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
       {activeSubTab === 'chat' ? (
         <ChatAssistant />
+      ) : activeSubTab === 'vision' ? (
+        <MultimodalSolver />
+      ) : activeSubTab === 'mindmap' ? (
+        <MindMapStudio />
       ) : activeSubTab === 'workspace' ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
@@ -600,7 +731,33 @@ export const AiTools: React.FC = () => {
 
                 {/* Header Action Buttons (Only show when content exists) */}
                 {(content || activeSavedItem) && (
-                  <div className="flex items-center gap-1.5 self-end sm:self-auto">
+                  <div className="flex items-center gap-1.5 self-end sm:self-auto flex-wrap">
+                    {/* Audio Listen TTS Button */}
+                    <button
+                      onClick={toggleAudioNarration}
+                      title={isSpeaking ? "Stop voice narration" : "Listen to study material"}
+                      className={`p-2 rounded-xl text-xs flex items-center gap-1 font-medium transition-all cursor-pointer border ${
+                        isSpeaking 
+                          ? 'bg-rose-500 text-white border-rose-600 animate-pulse shadow-sm' 
+                          : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                      }`}
+                    >
+                      {isSpeaking ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-indigo-500" />}
+                      <span>{isSpeaking ? 'Stop' : 'Listen'}</span>
+                    </button>
+
+                    {/* Flashcards View Mode Toggle */}
+                    {(activeTask === 'flashcards' || (activeSavedItem && activeSavedItem.task === 'flashcards')) && flashcardDeck.length > 0 && (
+                      <button
+                        onClick={() => setFlashcardViewMode(flashcardViewMode === 'deck' ? 'raw' : 'deck')}
+                        title="Toggle between Interactive Flip Deck and Markdown View"
+                        className="p-2 rounded-xl text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/50 text-xs flex items-center gap-1 font-semibold transition-all cursor-pointer"
+                      >
+                        <Layers className="w-3.5 h-3.5" />
+                        <span>{flashcardViewMode === 'deck' ? 'View Text' : 'Play 3D Deck'}</span>
+                      </button>
+                    )}
+
                     {/* Copy Button */}
                     <button
                       onClick={handleCopy}
@@ -692,8 +849,197 @@ export const AiTools: React.FC = () => {
                   </div>
                 )}
 
-                {/* Markdown content container */}
-                {(content || (activeSavedItem && activeSavedItem.content)) ? (
+                {/* Flashcard Interactive Deck Mode */}
+                {(activeTask === 'flashcards' || (activeSavedItem && activeSavedItem.task === 'flashcards')) && flashcardDeck.length > 0 && flashcardViewMode === 'deck' && (content || activeSavedItem) ? (
+                  <div className="flex flex-col items-center justify-between h-full py-4 space-y-6 select-none font-sans">
+                    
+                    {/* Top Deck Stats & Controls */}
+                    <div className="w-full flex items-center justify-between px-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                          Card {currentCardIdx + 1} of {flashcardDeck.length}
+                        </span>
+                        {cardRatings[currentCardIdx] && (
+                          <span className={`text-[10px] uppercase font-mono px-2 py-0.5 rounded-full font-bold ${
+                            cardRatings[currentCardIdx] === 'easy' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' :
+                            cardRatings[currentCardIdx] === 'medium' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400' :
+                            'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'
+                          }`}>
+                            {cardRatings[currentCardIdx]}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            const shuffled = [...flashcardDeck].sort(() => Math.random() - 0.5);
+                            setFlashcardDeck(shuffled);
+                            setCurrentCardIdx(0);
+                            setIsCardFlipped(false);
+                          }}
+                          title="Shuffle Deck"
+                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs transition cursor-pointer flex items-center gap-1"
+                        >
+                          <Shuffle className="w-3.5 h-3.5" />
+                          <span className="text-[10px]">Shuffle</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setCurrentCardIdx(0);
+                            setIsCardFlipped(false);
+                            setCardRatings({});
+                          }}
+                          title="Restart Deck"
+                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs transition cursor-pointer flex items-center gap-1"
+                        >
+                          <RotateCw className="w-3.5 h-3.5" />
+                          <span className="text-[10px]">Reset</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-indigo-600 transition-all duration-300"
+                        style={{ width: `${((currentCardIdx + 1) / flashcardDeck.length) * 100}%` }}
+                      />
+                    </div>
+
+                    {/* 3D Interactive Flip Card Container */}
+                    <div 
+                      onClick={() => setIsCardFlipped(!isCardFlipped)}
+                      className="w-full max-w-xl h-72 cursor-pointer relative group [perspective:1000px]"
+                    >
+                      <div className={`w-full h-full transition-all duration-500 [transform-style:preserve-3d] ${isCardFlipped ? '[transform:rotateY(180deg)]' : ''}`}>
+                        
+                        {/* FRONT FACE */}
+                        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-indigo-50/80 via-white to-indigo-50/30 dark:from-slate-850 dark:via-slate-900 dark:to-indigo-950/20 border-2 border-indigo-200 dark:border-indigo-800/60 rounded-3xl p-8 flex flex-col justify-between shadow-xl [backface-visibility:hidden]">
+                          <div className="flex justify-between items-center text-xs text-indigo-600 dark:text-indigo-400 font-mono font-bold">
+                            <span className="flex items-center gap-1.5">
+                              <Layers className="w-4 h-4" />
+                              FRONT: CONCEPT / QUESTION
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-sans font-normal">Click to Flip 🔄</span>
+                          </div>
+
+                          <div className="my-auto text-center">
+                            <h3 className="text-base md:text-xl font-bold text-slate-900 dark:text-slate-100 leading-relaxed">
+                              {flashcardDeck[currentCardIdx]?.front || 'Question Concept'}
+                            </h3>
+                          </div>
+
+                          <div className="text-center text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                            Press anywhere on card or spacebar to flip answer
+                          </div>
+                        </div>
+
+                        {/* BACK FACE */}
+                        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-emerald-50/80 via-white to-teal-50/30 dark:from-slate-850 dark:via-slate-900 dark:to-emerald-950/20 border-2 border-emerald-300 dark:border-emerald-700/60 rounded-3xl p-8 flex flex-col justify-between shadow-xl [transform:rotateY(180deg)] [backface-visibility:hidden]">
+                          <div className="flex justify-between items-center text-xs text-emerald-600 dark:text-emerald-400 font-mono font-bold">
+                            <span className="flex items-center gap-1.5">
+                              <CheckCircle2 className="w-4 h-4" />
+                              BACK: SOLUTION / EXPLANATION
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-sans font-normal">Click to Flip 🔄</span>
+                          </div>
+
+                          <div className="my-auto text-center overflow-y-auto max-h-40 px-2">
+                            <p className="text-sm md:text-base font-semibold text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line">
+                              {flashcardDeck[currentCardIdx]?.back || 'Solution notes'}
+                            </p>
+                          </div>
+
+                          <div className="text-center text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                            Rate your recall below to optimize spaced repetition
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+
+                    {/* Spaced Repetition Recall Ratings */}
+                    <div className="w-full max-w-xl space-y-2">
+                      <div className="text-center text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Self-Evaluation Rating
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCardRatings(prev => ({ ...prev, [currentCardIdx]: 'hard' }));
+                            if (currentCardIdx < flashcardDeck.length - 1) {
+                              setCurrentCardIdx(c => c + 1);
+                              setIsCardFlipped(false);
+                            }
+                          }}
+                          className="py-2 px-3 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 text-xs font-bold transition cursor-pointer text-center"
+                        >
+                          Hard (1x)
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCardRatings(prev => ({ ...prev, [currentCardIdx]: 'medium' }));
+                            if (currentCardIdx < flashcardDeck.length - 1) {
+                              setCurrentCardIdx(c => c + 1);
+                              setIsCardFlipped(false);
+                            }
+                          }}
+                          className="py-2 px-3 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 text-xs font-bold transition cursor-pointer text-center"
+                        >
+                          Good (2x)
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCardRatings(prev => ({ ...prev, [currentCardIdx]: 'easy' }));
+                            if (currentCardIdx < flashcardDeck.length - 1) {
+                              setCurrentCardIdx(c => c + 1);
+                              setIsCardFlipped(false);
+                            }
+                          }}
+                          className="py-2 px-3 rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold transition cursor-pointer text-center"
+                        >
+                          Easy (3x)
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Next / Previous Navigation */}
+                    <div className="w-full max-w-xl flex items-center justify-between pt-2">
+                      <button
+                        onClick={() => {
+                          if (currentCardIdx > 0) {
+                            setCurrentCardIdx(c => c - 1);
+                            setIsCardFlipped(false);
+                          }
+                        }}
+                        disabled={currentCardIdx === 0}
+                        className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 disabled:opacity-30 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center gap-1.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous Card
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          if (currentCardIdx < flashcardDeck.length - 1) {
+                            setCurrentCardIdx(c => c + 1);
+                            setIsCardFlipped(false);
+                          }
+                        }}
+                        disabled={currentCardIdx === flashcardDeck.length - 1}
+                        className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-30 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow transition"
+                      >
+                        Next Card
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                  </div>
+                ) : (content || (activeSavedItem && activeSavedItem.content)) ? (
                   <div 
                     className={`prose prose-slate dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 select-text leading-relaxed pb-12 ${isRtl ? 'rtl text-right font-sans' : 'ltr text-left'}`}
                     dir={isRtl ? 'rtl' : 'ltr'}
@@ -894,6 +1240,12 @@ export const AiTools: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Voice Companion Floating Modal */}
+      <VoiceTutorModal
+        isOpen={isVoiceModalOpen}
+        onClose={() => setIsVoiceModalOpen(false)}
+      />
     </div>
   );
 };

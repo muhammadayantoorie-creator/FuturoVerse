@@ -23,8 +23,14 @@ import {
   Clock, 
   FileCheck,
   ChevronRight,
-  UserPlus
+  UserPlus,
+  Swords,
+  Mic,
+  Eye,
+  GitBranch,
+  Zap
 } from 'lucide-react';
+import { VoiceTutorModal } from '@/src/features/ai-tools/VoiceTutorModal';
 import { 
   AreaChart, 
   Area, 
@@ -101,6 +107,7 @@ export const Dashboard: React.FC = () => {
 
   // State managers
   const [loadingStats, setLoadingStats] = useState(false);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   
   // Materials list state
   const [materialsData, setMaterialsData] = useState<any[]>([]);
@@ -354,6 +361,80 @@ export const Dashboard: React.FC = () => {
             <p className="text-teal-50/90 text-sm mt-2 max-w-xl">
               {getTranslation(locale, 'learningOverviewSub')} Keep pushing yourself to build cognitive rigor and achieve academic excellence.
             </p>
+          </div>
+        </div>
+
+        {/* 🌟 Next-Gen AI Feature Suite Showcase */}
+        <div className="p-5 bg-gradient-to-r from-slate-900 via-emerald-950/40 to-slate-900 border border-emerald-500/30 rounded-3xl space-y-3 shadow-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
+              <span className="text-xs font-bold text-white uppercase tracking-wider">
+                🌟 Next-Gen AI Innovation Suite
+              </span>
+              <span className="text-[10px] px-2 py-0.5 bg-emerald-500/20 text-emerald-300 font-mono rounded-full font-bold">
+                Live Demos
+              </span>
+            </div>
+            <span className="text-[10px] text-slate-400 hidden sm:inline">1-Click Launchers</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* 1. Voice Tutor */}
+            <button
+              onClick={() => setIsVoiceModalOpen(true)}
+              className="p-3.5 bg-slate-800/80 hover:bg-emerald-950/70 border border-slate-700/80 hover:border-emerald-500/50 rounded-2xl text-left transition-all group cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 mb-1.5">
+                <div className="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Mic className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">AI Voice Tutor</span>
+              </div>
+              <p className="text-[11px] text-slate-400 line-clamp-1">Speech audio tutor with waveform</p>
+            </button>
+
+            {/* 2. Vision Solver */}
+            <button
+              onClick={() => setActiveTab('ai-tools')}
+              className="p-3.5 bg-slate-800/80 hover:bg-emerald-950/70 border border-slate-700/80 hover:border-emerald-500/50 rounded-2xl text-left transition-all group cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 mb-1.5">
+                <div className="w-7 h-7 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Eye className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">Vision Solver</span>
+              </div>
+              <p className="text-[11px] text-slate-400 line-clamp-1">Handwritten math & diagrams</p>
+            </button>
+
+            {/* 3. Battle Arena */}
+            <button
+              onClick={() => setActiveTab('quizzes')}
+              className="p-3.5 bg-slate-800/80 hover:bg-emerald-950/70 border border-slate-700/80 hover:border-emerald-500/50 rounded-2xl text-left transition-all group cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 mb-1.5">
+                <div className="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Swords className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-bold text-white group-hover:text-amber-300 transition-colors">AI Battle Arena</span>
+              </div>
+              <p className="text-[11px] text-slate-400 line-clamp-1">1v1 speed duel quiz engine</p>
+            </button>
+
+            {/* 4. Mind Map */}
+            <button
+              onClick={() => setActiveTab('ai-tools')}
+              className="p-3.5 bg-slate-800/80 hover:bg-emerald-950/70 border border-slate-700/80 hover:border-emerald-500/50 rounded-2xl text-left transition-all group cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 mb-1.5">
+                <div className="w-7 h-7 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <GitBranch className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-bold text-white group-hover:text-purple-300 transition-colors">Mind Map Tree</span>
+              </div>
+              <p className="text-[11px] text-slate-400 line-clamp-1">Concept graphs & topologies</p>
+            </button>
           </div>
         </div>
 
@@ -2016,6 +2097,12 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
       </Dialog>
+
+      {/* Voice Learning Companion Modal */}
+      <VoiceTutorModal
+        isOpen={isVoiceModalOpen}
+        onClose={() => setIsVoiceModalOpen(false)}
+      />
 
     </div>
   );

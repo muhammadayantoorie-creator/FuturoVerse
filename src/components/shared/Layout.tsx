@@ -20,13 +20,16 @@ import {
   Home,
   ShieldCheck,
   UserCheck,
-  User
+  User,
+  Mic
 } from 'lucide-react';
 import { useAppStore } from '@/src/store/useAppStore';
 import { getTranslation } from '@/src/config/i18n';
 import { Button } from '@/src/components/shared/Button';
 import { useLogoutMutation } from '@/src/features/auth/authHooks';
 import { NotificationPopover } from '@/src/components/shared/NotificationPopover';
+import { CommandPalette } from '@/src/components/shared/CommandPalette';
+import { VoiceTutorModal } from '@/src/features/ai-tools/VoiceTutorModal';
 import { Role, Locale } from '@/src/types';
 
 interface LayoutProps {
@@ -54,8 +57,22 @@ export const Layout: React.FC<LayoutProps> = ({ children, onNavigateToLanding })
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
 
   const isRtl = locale === 'ur';
+
+  // Global Ctrl+K / Cmd+K listener for Command Palette
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Periodically fetch notifications on mount & every 30s
   useEffect(() => {
@@ -270,14 +287,21 @@ export const Layout: React.FC<LayoutProps> = ({ children, onNavigateToLanding })
             </span>
           </div>
 
-          {/* Desktop Search */}
-          <div className="hidden md:flex flex-1 max-w-md relative">
+          {/* Desktop Search / Command Palette trigger */}
+          <div 
+            onClick={() => setIsCommandPaletteOpen(true)}
+            className="hidden md:flex flex-1 max-w-md relative cursor-pointer"
+          >
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input 
               type="text"
-              placeholder={getTranslation(locale, 'searchPlaceholder')}
-              className="w-full bg-[#e5eeff]/40 dark:bg-slate-800/40 border border-transparent focus:border-slate-300 dark:focus:border-slate-700 focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-primary rounded-full py-2 pl-10 pr-4 text-xs font-sans text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none transition-all"
+              readOnly
+              placeholder={getTranslation(locale, 'searchPlaceholder') || "Search anything or press Ctrl+K..."}
+              className="w-full bg-[#e5eeff]/40 dark:bg-slate-800/40 border border-transparent hover:border-slate-300 dark:hover:border-slate-700 rounded-full py-2 pl-10 pr-16 text-xs font-sans text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none transition-all cursor-pointer"
             />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono font-semibold text-slate-400 dark:text-slate-500 bg-slate-200/60 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-300/40 dark:border-slate-700">
+              Ctrl K
+            </span>
           </div>
 
           {/* Right Controls */}
@@ -499,6 +523,31 @@ export const Layout: React.FC<LayoutProps> = ({ children, onNavigateToLanding })
           </aside>
         </div>
       )}
+
+      {/* Global Quick Command Palette */}
+      <CommandPalette 
+        isOpen={isCommandPaletteOpen} 
+        onClose={() => setIsCommandPaletteOpen(false)} 
+      />
+
+      {/* Floating Global AI Voice Companion Trigger */}
+      <div className={`fixed bottom-6 ${isRtl ? 'left-6' : 'right-6'} z-40`}>
+        <button
+          onClick={() => setIsVoiceModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black rounded-full shadow-2xl shadow-emerald-500/40 border-2 border-emerald-300/40 hover:scale-105 active:scale-95 transition-all cursor-pointer group"
+          title="Open AI Voice Companion"
+        >
+          <span className="w-2.5 h-2.5 rounded-full bg-slate-950 animate-ping shrink-0" />
+          <Mic className="w-4 h-4 shrink-0" />
+          <span className="text-xs tracking-wide">Ask Voice AI</span>
+        </button>
+      </div>
+
+      {/* Global Voice Tutor Modal */}
+      <VoiceTutorModal
+        isOpen={isVoiceModalOpen}
+        onClose={() => setIsVoiceModalOpen(false)}
+      />
     </div>
   );
 };

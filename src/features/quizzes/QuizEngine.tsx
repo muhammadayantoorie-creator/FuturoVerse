@@ -9,7 +9,7 @@ import {
   Trophy, Clock, Save, ArrowLeft, ArrowRight, CheckCircle2, 
   HelpCircle, RefreshCw, Star, Flag, ListCollapse, ChevronRight, 
   Sparkles, Check, X, Award, Eye, Trash2, Send, Bookmark, FileText, 
-  AlertCircle, ShieldAlert, Lock, Unlock, ShieldCheck, Play, RotateCcw, Timer
+  AlertCircle, ShieldAlert, Lock, Unlock, ShieldCheck, Play, RotateCcw, Timer, Download, Swords
 } from 'lucide-react';
 import { useAppStore } from '@/src/store/useAppStore';
 import { getTranslation } from '@/src/config/i18n';
@@ -18,9 +18,11 @@ import remarkGfm from 'remark-gfm';
 import { Quiz, Question, QuestionType, LeaderboardEntry, QuizAttempt, ViolationLog } from './types';
 import { PRESET_QUIZZES, SEED_LEADERBOARD, INITIAL_STUDENT_ATTEMPTS } from './mockData';
 import { TeacherDashboard } from './TeacherDashboard';
+import { exportCertificateToPdf } from '@/src/utils/pdfExport';
+import { QuizBattleArena } from './QuizBattleArena';
 
 export const QuizEngine: React.FC = () => {
-  const { locale, currentRole } = useAppStore();
+  const { locale, currentRole, currentUser, addNotification } = useAppStore();
   const isRtl = locale === 'ur';
   const isTeacher = currentRole === 'teacher';
 
@@ -31,7 +33,7 @@ export const QuizEngine: React.FC = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   
   // Tabs for Student Workspace
-  const [activeTab, setActiveTab] = useState<'quizzes' | 'ai-coach' | 'leaderboard'>('quizzes');
+  const [activeTab, setActiveTab] = useState<'quizzes' | 'battle' | 'ai-coach' | 'leaderboard'>('quizzes');
 
   // Active quiz playing states
   const [isPlaying, setIsPlaying] = useState(false);
@@ -660,27 +662,34 @@ export const QuizEngine: React.FC = () => {
 
           {/* Student Tabs selector */}
           {!isTeacher && (
-            <div className="flex bg-slate-800/80 p-1 rounded-2xl border border-slate-700 self-start md:self-auto shrink-0 z-10 font-sans">
+            <div className="flex flex-wrap bg-slate-800/80 p-1 rounded-2xl border border-slate-700 self-start md:self-auto shrink-0 z-10 font-sans gap-1">
               <button
                 onClick={() => setActiveTab('quizzes')}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === 'quizzes' ? 'bg-indigo-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${activeTab === 'quizzes' ? 'bg-indigo-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
               >
                 <FileText className="w-3.5 h-3.5" />
                 <span>Test Papers</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('battle')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${activeTab === 'battle' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold shadow-lg shadow-emerald-500/20' : 'text-emerald-400 hover:text-emerald-300'}`}
+              >
+                <Swords className="w-3.5 h-3.5 animate-pulse" />
+                <span>AI Battle Arena ⚔️</span>
               </button>
               <button
                 onClick={() => {
                   setActiveTab('ai-coach');
                   handleTriggerCoachAnalysis();
                 }}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === 'ai-coach' ? 'bg-indigo-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${activeTab === 'ai-coach' ? 'bg-indigo-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>AI Recommendations</span>
+                <span>AI Coach</span>
               </button>
               <button
                 onClick={() => setActiveTab('leaderboard')}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === 'leaderboard' ? 'bg-indigo-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${activeTab === 'leaderboard' ? 'bg-indigo-600 text-white shadow' : 'text-slate-300 hover:text-white'}`}
               >
                 <Trophy className="w-3.5 h-3.5" />
                 <span>Standings</span>
@@ -856,6 +865,11 @@ export const QuizEngine: React.FC = () => {
                 </table>
               </div>
             </div>
+          )}
+
+          {/* TAB: AI BATTLE ARENA */}
+          {activeTab === 'battle' && (
+            <QuizBattleArena onBackToQuizzes={() => setActiveTab('quizzes')} />
           )}
 
         </div>
@@ -1284,6 +1298,46 @@ export const QuizEngine: React.FC = () => {
                   <span className="font-sans font-semibold">Flawless compliance session! No compliance violations logged.</span>
                 </div>
               )}
+
+              {/* Certificate & Gamification Banner */}
+              <div className="bg-gradient-to-r from-indigo-500/10 via-emerald-500/10 to-amber-500/10 border border-indigo-200/60 dark:border-indigo-800/40 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0">
+                    <Award className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                      Official Certificate of Achievement
+                    </h4>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                      Issued by FuturoVerse Academic Board • Verified Credential
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    const scorePct = Math.round((quizResults.score / quizResults.totalPoints) * 100);
+                    exportCertificateToPdf({
+                      studentName: currentUser?.name || 'Muhammad Ali',
+                      quizTitle: selectedQuiz.title,
+                      courseName: selectedQuiz.subject,
+                      scorePercentage: scorePct,
+                      date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+                    });
+                    if (addNotification) {
+                      addNotification({
+                        title: 'Certificate Downloaded!',
+                        message: `Achievement Certificate for "${selectedQuiz.title}" has been saved.`,
+                        type: 'achievement'
+                      });
+                    }
+                  }}
+                  className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer shrink-0"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download Certificate (PDF)</span>
+                </button>
+              </div>
 
               {/* Retry / Return actions */}
               <div className="flex gap-4 pt-2">

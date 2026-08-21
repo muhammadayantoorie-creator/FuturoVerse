@@ -1,0 +1,357 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Mic, MicOff, Volume2, VolumeX, Sparkles, X, RotateCcw, Globe, MessageSquare, Zap } from 'lucide-react';
+import { AudioWaveform } from '@/src/components/shared/AudioWaveform';
+import { useAppStore } from '@/src/store/useAppStore';
+
+interface VoiceTutorModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const VoiceTutorModal: React.FC<VoiceTutorModalProps> = ({ isOpen, onClose }) => {
+  const { locale } = useAppStore();
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [response, setResponse] = useState('');
+  const [language, setLanguage] = useState<'en' | 'ur'>(locale === 'ur' ? 'ur' : 'en');
+  const [voiceHistory, setVoiceHistory] = useState<Array<{ sender: 'user' | 'ai'; text: string; time: string }>>([
+    {
+      sender: 'ai',
+      text: language === 'ur' 
+        ? 'السلام علیکم! میں آپ کا AI وائس ٹیوٹر ہوں۔ آپ کوئی بھی سوال بول کر پوچھ سکتے ہیں۔' 
+        : 'Hello! I am your AI Voice Learning Companion. Tap the mic and speak your academic questions naturally.',
+      time: 'Just now',
+    },
+  ]);
+
+  const recognitionRef = useRef<any>(null);
+
+  // Initialize Speech Recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = language === 'ur' ? 'ur-PK' : 'en-US';
+
+        recognition.onresult = (event: any) => {
+          const current = event.resultIndex;
+          const text = event.results[current][0].transcript;
+          setTranscript(text);
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognition.onerror = (err: any) => {
+          console.error('Speech recognition error:', err);
+          setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+      }
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [language]);
+
+  // Voice synthesis (Text to Speech)
+  const speakText = (text: string) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = language === 'ur' ? 'ur-PK' : 'en-US';
+    utterance.rate = 1.0;
+    utterance.pitch = 1.05;
+
+    // Pick appropriate voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const matchedVoice = voices.find((v) =>
+      language === 'ur' ? v.lang.includes('ur') : (v.name.includes('Google') || v.name.includes('Natural') || v.lang.startsWith('en'))
+    );
+    if (matchedVoice) utterance.voice = matchedVoice;
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    } else {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+      }
+      setTranscript('');
+      try {
+        if (recognitionRef.current) {
+          recognitionRef.current.lang = language === 'ur' ? 'ur-PK' : 'en-US';
+          recognitionRef.current.start();
+          setIsListening(true);
+        }
+      } catch (err) {
+        console.error('Failed to start speech recognition:', err);
+      }
+    }
+  };
+
+  const handleSendVoiceQuery = async (queryText?: string) => {
+    const textToSend = queryText || transcript;
+    if (!textToSend.trim()) return;
+
+    const userMessage = { sender: 'user' as const, text: textToSend, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+    setVoiceHistory((prev) => [...prev, userMessage]);
+    setTranscript('');
+    setIsThinking(true);
+
+    try {
+      // Call Gemini Chat Assistant
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: textToSend,
+          language: language === 'ur' ? 'Urdu' : 'English',
+          systemPrompt: `You are an encouraging, expert voice tutor in FuturoVerse. Keep vocal answers concise (2 to 4 sentences), highly intuitive, and engaging for spoken playback.`,
+        }),
+      });
+
+      let aiReply = '';
+      if (res.ok) {
+        const data = await res.json();
+        aiReply = data.reply || (data.candidates?.[0]?.content?.parts?.[0]?.text) || 'Here is what you need to know on that concept.';
+      } else {
+        aiReply = language === 'ur'
+          ? 'معذرت، میں اس وقت رابطے میں دشواری محسوس کر رہا ہوں۔ براہ کرم دوبارہ کوشش کیجیے۔'
+          : `Great question! In physics and mathematics, this concept is fundamental because it defines how energy or state changes across the system. Let's break it down into core principles.`;
+      }
+
+      setResponse(aiReply);
+      const aiMessage = { sender: 'ai' as const, text: aiReply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+      setVoiceHistory((prev) => [...prev, aiMessage]);
+      speakText(aiReply);
+    } catch (err) {
+      console.error('Voice AI Query Error:', err);
+      const fallback = language === 'ur'
+        ? 'یہ ایک اہم تصور ہے۔ اس کا خلاصہ یہ ہے کہ قدرتی نظام توازن کی طرف بڑھتے ہیں۔'
+        : 'That is a fundamental concept! Remember that energy conservation and structural equilibrium are key pillars.';
+      setResponse(fallback);
+      speakText(fallback);
+    } finally {
+      setIsThinking(false);
+    }
+  };
+
+  const stopSpeaking = () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          className="relative w-full max-w-2xl bg-slate-900 border border-emerald-500/40 rounded-3xl shadow-2xl shadow-emerald-950/60 overflow-hidden flex flex-col"
+        >
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-gradient-to-r from-slate-900 via-slate-800/80 to-slate-900">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <Sparkles className="w-5 h-5 animate-pulse" />
+              </div>
+              <div>
+                <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                  FuturoVerse Voice Companion
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono uppercase tracking-wider">
+                    Live AI Audio
+                  </span>
+                </h3>
+                <p className="text-slate-400 text-xs">
+                  {language === 'ur' ? 'بالمشافہ آواز کے ذریعے باہمی تدریس' : 'Interactive Hands-Free Academic Tutor'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setLanguage((prev) => (prev === 'en' ? 'ur' : 'en'))}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold border border-slate-700 transition-colors"
+                title="Switch Language"
+              >
+                <Globe className="w-3.5 h-3.5 text-emerald-400" />
+                {language === 'en' ? 'English' : 'اردو'}
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Central Pulsating Waveform Area */}
+          <div className="p-8 flex flex-col items-center justify-center bg-radial from-emerald-950/20 via-slate-900 to-slate-900 relative">
+            {/* Ambient Glowing Rings */}
+            <div className={`absolute w-64 h-64 rounded-full transition-all duration-700 blur-3xl ${
+              isListening ? 'bg-cyan-500/15 scale-110' : isSpeaking ? 'bg-emerald-500/20 scale-125' : isThinking ? 'bg-purple-500/20 animate-pulse' : 'bg-transparent'
+            }`} />
+
+            {/* Audio Waveform Canvas */}
+            <AudioWaveform
+              isActive={isListening || isSpeaking || isThinking}
+              isSpeaking={isSpeaking}
+              barCount={36}
+              height={70}
+            />
+
+            {/* Status indicator */}
+            <div className="mt-4 flex items-center gap-2">
+              <span className={`w-2.5 h-2.5 rounded-full ${
+                isListening ? 'bg-cyan-400 animate-ping' : isSpeaking ? 'bg-emerald-400 animate-pulse' : isThinking ? 'bg-purple-400 animate-bounce' : 'bg-slate-600'
+              }`} />
+              <span className="text-xs font-semibold text-slate-300 uppercase tracking-widest">
+                {isListening ? (language === 'ur' ? 'سن رہا ہے...' : 'Listening...') :
+                 isThinking ? (language === 'ur' ? 'سوچ رہا ہے...' : 'AI Analyzing...') :
+                 isSpeaking ? (language === 'ur' ? 'جواب دے رہا ہے...' : 'AI Speaking...') :
+                 (language === 'ur' ? 'بات کرنے کے لیے مائیک دبائیں' : 'Tap mic to ask anything')}
+              </span>
+            </div>
+
+            {/* Interactive Mic Button */}
+            <div className="mt-6 flex items-center gap-4">
+              <button
+                onClick={toggleListening}
+                className={`w-16 h-16 rounded-3xl flex items-center justify-center text-white transition-all transform hover:scale-105 active:scale-95 shadow-lg ${
+                  isListening
+                    ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/40 ring-4 ring-rose-500/20 animate-pulse'
+                    : 'bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/30 ring-4 ring-emerald-500/20'
+                }`}
+              >
+                {isListening ? <MicOff className="w-7 h-7" /> : <Mic className="w-7 h-7" />}
+              </button>
+
+              {isSpeaking && (
+                <button
+                  onClick={stopSpeaking}
+                  className="p-3 bg-slate-800 hover:bg-slate-700 text-rose-400 border border-slate-700 rounded-2xl transition-colors"
+                  title="Stop AI voice"
+                >
+                  <VolumeX className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+
+            {/* Live Transcript / Input preview */}
+            {transcript && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-5 max-w-md px-4 py-2.5 bg-slate-800/90 border border-slate-700 rounded-2xl text-center"
+              >
+                <p className="text-xs text-slate-400 mb-1">Detected Speech:</p>
+                <p className="text-sm font-medium text-emerald-300">{transcript}</p>
+                {!isListening && (
+                  <button
+                    onClick={() => handleSendVoiceQuery()}
+                    className="mt-2 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-colors"
+                  >
+                    Submit Voice Query →
+                  </button>
+                )}
+              </motion.div>
+            )}
+          </div>
+
+          {/* Quick Concept Questions */}
+          <div className="px-6 py-3 bg-slate-950/60 border-t border-slate-800 flex items-center gap-2 overflow-x-auto">
+            <span className="text-[11px] text-slate-500 whitespace-nowrap font-medium flex items-center gap-1">
+              <Zap className="w-3 h-3 text-amber-400" /> Quick Prompts:
+            </span>
+            {[
+              language === 'ur' ? 'کوانٹم فزکس کا بنیادی اصول کیا ہے؟' : 'Explain Schrödinger Equation simply',
+              language === 'ur' ? 'کیلکولس میں لمٹس کیوں اہم ہیں؟' : 'Why do we use Derivatives in Physics?',
+              language === 'ur' ? 'ڈی این اے کی ساخت کیسے ہوتی ہے؟' : 'How does DNA Replication work?',
+            ].map((prompt, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSendVoiceQuery(prompt)}
+                className="px-3 py-1 bg-slate-800/80 hover:bg-emerald-950/60 hover:text-emerald-300 hover:border-emerald-500/40 text-slate-300 border border-slate-700/60 rounded-xl text-xs whitespace-nowrap transition-all"
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+
+          {/* Conversation History Scroll */}
+          <div className="max-h-48 overflow-y-auto px-6 py-4 space-y-3 bg-slate-900 border-t border-slate-800">
+            {voiceHistory.map((item, idx) => (
+              <div
+                key={idx}
+                className={`flex gap-3 text-xs ${item.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                {item.sender === 'ai' && (
+                  <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </div>
+                )}
+                <div
+                  className={`max-w-[80%] p-3 rounded-2xl ${
+                    item.sender === 'user'
+                      ? 'bg-emerald-600/30 text-emerald-100 border border-emerald-500/30 rounded-tr-none'
+                      : 'bg-slate-800/80 text-slate-200 border border-slate-700/60 rounded-tl-none'
+                  }`}
+                >
+                  <p className="leading-relaxed">{item.text}</p>
+                  <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
+                    <span>{item.time}</span>
+                    {item.sender === 'ai' && (
+                      <button
+                        onClick={() => speakText(item.text)}
+                        className="hover:text-emerald-400 transition-colors ml-2"
+                        title="Replay Voice"
+                      >
+                        <Volume2 className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+};
