@@ -115,10 +115,12 @@ export const Classes: React.FC = () => {
   // Listen to external create modal trigger (e.g. from Sidebar CTA)
   useEffect(() => {
     if (isCreateClassModalOpen) {
-      setCreateOpen(true);
+      if (currentRole !== 'student') {
+        setCreateOpen(true);
+      }
       setCreateClassModalOpen(false);
     }
-  }, [isCreateClassModalOpen, setCreateClassModalOpen]);
+  }, [isCreateClassModalOpen, setCreateClassModalOpen, currentRole]);
 
   // Search Debouncing
   useEffect(() => {
@@ -330,17 +332,21 @@ export const Classes: React.FC = () => {
               {t('Classrooms', 'کلاس رومز')}
             </h1>
             <p className="font-sans text-sm text-slate-500 dark:text-slate-400 mt-1">
-              {t('Create, update academic streams, invite students, and manage curriculum schedules.', 'تعلیمی نصاب ترتیب دیں، طلباء کو مدعو کریں اور کلاس ریکارڈز کا نظم کریں۔')}
+              {currentRole === 'student'
+                ? t('View your enrolled classrooms, course schedules, and syllabus materials.', 'اپنے داخل شدہ کلاس رومز، امتحانی شیڈول اور نصابی مواد دیکھیں۔')
+                : t('Create, update academic streams, invite students, and manage curriculum schedules.', 'تعلیمی نصاب ترتیب دیں، طلباء کو مدعو کریں اور کلاس ریکارڈز کا نظم کریں۔')}
             </p>
           </div>
         </div>
-        <Button
-          onClick={() => setCreateOpen(true)}
-          className="cursor-pointer gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-md rounded-xl font-sans font-semibold py-2.5 px-4 inline-flex items-center"
-        >
-          <Plus className="w-5 h-5" />
-          {t('Create Classroom', 'کلاس روم بنائیں')}
-        </Button>
+        {currentRole !== 'student' && (
+          <Button
+            onClick={() => setCreateOpen(true)}
+            className="cursor-pointer gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-md rounded-xl font-sans font-semibold py-2.5 px-4 inline-flex items-center"
+          >
+            <Plus className="w-5 h-5" />
+            {t('Create Classroom', 'کلاس روم بنائیں')}
+          </Button>
+        )}
       </div>
 
       {/* Filter & Search Bar Card */}
@@ -442,20 +448,26 @@ export const Classes: React.FC = () => {
         <Card className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs">
           <EmptyState
             title={t('No Classrooms Found', 'کوئی کلاس روم نہیں ملی')}
-            description={t(
-              'No academic classes match your filtering criteria. Try adjusting your query or create a brand new classroom.',
-              'فلٹر اور تلاش کے نتائج کے مطابق کوئی کلاس روم نہیں ملا۔ پنے فلٹرز درست کریں یا ایک نئی کلاس بنائیں'
-            )}
+            description={
+              currentRole === 'student'
+                ? t('You are not currently enrolled in any matching classrooms. Ask your instructor for an invite code.', 'آپ فی الحال کسی کلاس روم میں داخل نہیں ہیں۔ اپنے استاد سے کلاس کوڈ حاصل کریں۔')
+                : t(
+                    'No academic classes match your filtering criteria. Try adjusting your query or create a brand new classroom.',
+                    'فلٹر اور تلاش کے نتائج کے مطابق کوئی کلاس روم نہیں ملا۔ پنے فلٹرز درست کریں یا ایک نئی کلاس بنائیں'
+                  )
+            }
             icon="school"
           />
-          <Button
-            variant="secondary"
-            onClick={() => setCreateOpen(true)}
-            className="mt-6 font-sans font-semibold gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            {t('Create Your First Classroom', 'پہلی کلاس روم بنائیں')}
-          </Button>
+          {currentRole !== 'student' && (
+            <Button
+              variant="secondary"
+              onClick={() => setCreateOpen(true)}
+              className="mt-6 font-sans font-semibold gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              {t('Create Your First Classroom', 'پہلی کلاس روم بنائیں')}
+            </Button>
+          )}
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -519,30 +531,42 @@ export const Classes: React.FC = () => {
                 </div>
 
                 {/* Actions Button Grid */}
-                <div className="grid grid-cols-12 gap-2">
-                  <Button
-                    onClick={() => handleManageClick(cls)}
-                    variant="secondary"
-                    className="col-span-6 cursor-pointer justify-center text-xs font-semibold py-1.5 px-3 rounded-lg flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/30 dark:hover:bg-blue-950/50 dark:text-blue-300"
-                  >
-                    <Users className="w-3.5 h-3.5" />
-                    {t('Manage', 'انتظام کریں')}
-                  </Button>
-                  <Button
-                    onClick={() => handleEditClick(cls)}
-                    variant="outlined"
-                    className="col-span-3 cursor-pointer justify-center text-xs font-semibold py-1.5 px-2 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button
-                    onClick={() => handleDeleteClick(cls)}
-                    variant="outlined"
-                    className="col-span-3 cursor-pointer justify-center text-xs font-semibold py-1.5 px-2 rounded-lg border border-rose-100 dark:border-rose-950/40 text-rose-500 hover:text-rose-600 dark:text-red-400 dark:hover:text-red-300"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
+                {currentRole === 'student' ? (
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 rounded-lg text-xs font-bold flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5" />
+                      {t('Enrolled Student', 'داخلہ شدہ طالب علم')}
+                    </span>
+                    <span className="text-[11px] font-semibold text-slate-400 font-mono">
+                      {cls.section || 'General'}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-12 gap-2">
+                    <Button
+                      onClick={() => handleManageClick(cls)}
+                      variant="secondary"
+                      className="col-span-6 cursor-pointer justify-center text-xs font-semibold py-1.5 px-3 rounded-lg flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/30 dark:hover:bg-blue-950/50 dark:text-blue-300"
+                    >
+                      <Users className="w-3.5 h-3.5" />
+                      {t('Manage', 'انتظام کریں')}
+                    </Button>
+                    <Button
+                      onClick={() => handleEditClick(cls)}
+                      variant="outlined"
+                      className="col-span-3 cursor-pointer justify-center text-xs font-semibold py-1.5 px-2 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      onClick={() => handleDeleteClick(cls)}
+                      variant="outlined"
+                      className="col-span-3 cursor-pointer justify-center text-xs font-semibold py-1.5 px-2 rounded-lg border border-rose-100 dark:border-rose-950/40 text-rose-500 hover:text-rose-600 dark:text-red-400 dark:hover:text-red-300"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </Card>
           ))}
