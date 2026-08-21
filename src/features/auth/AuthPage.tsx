@@ -700,6 +700,44 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
                   {registerMutation.isPending ? 'Registering...' : `Create ${selectedRole.toUpperCase()} Account`}
                   {!registerMutation.isPending && <ArrowRight className="w-4 h-4" />}
                 </button>
+
+                {/* Divider */}
+                <div className="relative my-3">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-700/60"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-slate-800 px-3 text-slate-400 font-medium">Or register with</span>
+                  </div>
+                </div>
+
+                {/* Google Sign In/Up */}
+                <button
+                  type="button"
+                  disabled={googleLoginMutation.isPending}
+                  onClick={onGoogleLogin}
+                  className="w-full bg-slate-900/60 hover:bg-slate-900 border border-slate-700/60 hover:border-slate-600 text-white font-medium py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2.5 text-sm transition-all cursor-pointer"
+                >
+                  <svg className="w-4 h-4 mr-1 shrink-0" viewBox="0 0 24 24" width="16" height="16">
+                    <path
+                      fill="#EA4335"
+                      d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.27 0 3.198 2.698 1.24 6.65l4.026 3.115Z"
+                    />
+                    <path
+                      fill="#4285F4"
+                      d="M16.04 15.345c-1.077.732-2.436 1.173-4.04 1.173a7.07 7.07 0 0 1-6.734-4.856L1.24 14.777C3.198 18.73 7.27 21.428 12 21.428c3.11 0 5.928-1.03 7.91-2.822l-3.87-3.261Z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M1.24 6.65A12.025 12.025 0 0 0 0 12c0 1.912.446 3.722 1.24 5.35l4.026-3.115A7.014 7.014 0 0 1 4.91 12c0-1.127.268-2.19.733-3.132L1.24 6.65Z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M23.52 12.273c0-.818-.073-1.605-.21-2.364H12v4.51h6.47c-.28 1.477-1.114 2.731-2.368 3.572l3.87 3.262c2.264-2.09 3.548-5.177 3.548-8.98Z"
+                    />
+                  </svg>
+                  {googleLoginMutation.isPending ? 'Connecting...' : `Sign Up with Google (${selectedRole.toUpperCase()})`}
+                </button>
               </form>
             </motion.div>
           )}
