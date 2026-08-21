@@ -307,6 +307,15 @@ export const QuizEngine: React.FC = () => {
   // PLAYING / RESUMPTION & FLOW CONTROLS
   // ==========================================
   const handleStartQuiz = (quiz: Quiz) => {
+    // Check if student has already completed and submitted this quiz
+    const existingAttempt = attempts.find(a => a.quizId === quiz.id && a.completed);
+    if (existingAttempt) {
+      setSelectedQuiz(quiz);
+      setQuizResults(existingAttempt);
+      setIsPlaying(false);
+      return;
+    }
+
     setSelectedQuiz(quiz);
     setCurrentQuestionIdx(0);
     setQuizResults(null);
@@ -728,54 +737,80 @@ export const QuizEngine: React.FC = () => {
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 select-none font-sans">
-                {quizzes.filter(q => q.status === 'published').map((quiz) => (
-                  <div 
-                    key={quiz.id}
-                    className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-2xl flex flex-col justify-between hover:border-indigo-500 hover:shadow-md transition-all relative overflow-hidden group select-none"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-[10px] bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 px-2 py-0.5 rounded-full font-mono font-semibold">
-                        {quiz.subject}
-                      </span>
-                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-semibold capitalize ${
-                        quiz.difficulty === 'hard' 
-                          ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400' 
-                          : quiz.difficulty === 'medium'
-                          ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400'
-                          : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400'
-                      }`}>
-                        {quiz.difficulty}
-                      </span>
-                    </div>
+                {quizzes.filter(q => q.status === 'published').map((quiz) => {
+                  const existingAttempt = attempts.find(a => a.quizId === quiz.id && a.completed);
+                  const isSubmitted = !!existingAttempt;
 
-                    <h4 className="font-bold text-xs md:text-sm text-slate-850 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2 mb-3 leading-relaxed">
-                      {quiz.title}
-                    </h4>
-
-                    <div className="flex items-center gap-4 text-[10px] text-slate-400 dark:text-slate-500 font-mono mb-4">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        {Math.round(quiz.durationSeconds / 60)} Min
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <HelpCircle className="w-3.5 h-3.5" />
-                        {quiz.questions.length} Questions
-                      </span>
-                      <span className="flex items-center gap-1" title="Security Threshold Warnings count before auto submission">
-                        <Lock className="w-3.5 h-3.5" />
-                        Sec Lvl: {quiz.autoSubmitThreshold || 3}
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={() => handleStartQuiz(quiz)}
-                      className="w-full bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white dark:bg-indigo-950/50 dark:hover:bg-indigo-600 dark:text-indigo-400 font-bold text-xs py-2.5 rounded-xl cursor-pointer flex items-center justify-center gap-1.5 transition-all"
+                  return (
+                    <div 
+                      key={quiz.id}
+                      className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-2xl flex flex-col justify-between hover:border-indigo-500 hover:shadow-md transition-all relative overflow-hidden group select-none"
                     >
-                      <span>{isRtl ? 'ٹیسٹ شروع کریں' : 'Start Secure practice'}</span>
-                      <Play className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-[10px] bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 px-2 py-0.5 rounded-full font-mono font-semibold">
+                          {quiz.subject}
+                        </span>
+                        {isSubmitted ? (
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            {isRtl ? 'مکمل شدہ' : 'Submitted'} ({existingAttempt.score}/{existingAttempt.totalPoints})
+                          </span>
+                        ) : (
+                          <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-semibold capitalize ${
+                            quiz.difficulty === 'hard' 
+                              ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400' 
+                              : quiz.difficulty === 'medium'
+                              ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400'
+                              : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400'
+                          }`}>
+                            {quiz.difficulty}
+                          </span>
+                        )}
+                      </div>
+
+                      <h4 className="font-bold text-xs md:text-sm text-slate-850 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2 mb-3 leading-relaxed">
+                        {quiz.title}
+                      </h4>
+
+                      <div className="flex items-center gap-4 text-[10px] text-slate-400 dark:text-slate-500 font-mono mb-4">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          {Math.round(quiz.durationSeconds / 60)} Min
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <HelpCircle className="w-3.5 h-3.5" />
+                          {quiz.questions.length} Questions
+                        </span>
+                        <span className="flex items-center gap-1" title="Security Threshold Warnings count before auto submission">
+                          <Lock className="w-3.5 h-3.5" />
+                          Sec Lvl: {quiz.autoSubmitThreshold || 3}
+                        </span>
+                      </div>
+
+                      {isSubmitted ? (
+                        <button
+                          onClick={() => {
+                            setSelectedQuiz(quiz);
+                            setQuizResults(existingAttempt);
+                            setIsPlaying(false);
+                          }}
+                          className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 font-bold text-xs py-2.5 rounded-xl cursor-pointer flex items-center justify-center gap-1.5 transition-all"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>{isRtl ? 'نتیجہ دیکھیں (دوبارہ ٹیسٹ بند ہے)' : 'View Result (Completed)'}</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleStartQuiz(quiz)}
+                          className="w-full bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white dark:bg-indigo-950/50 dark:hover:bg-indigo-600 dark:text-indigo-400 font-bold text-xs py-2.5 rounded-xl cursor-pointer flex items-center justify-center gap-1.5 transition-all"
+                        >
+                          <span>{isRtl ? 'ٹیسٹ شروع کریں' : 'Start Secure Practice'}</span>
+                          <Play className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -1339,26 +1374,19 @@ export const QuizEngine: React.FC = () => {
                 </button>
               </div>
 
-              {/* Retry / Return actions */}
-              <div className="flex gap-4 pt-2">
+              {/* Return to Dashboard action (No retake permitted) */}
+              <div className="pt-2">
                 <button
                   onClick={() => {
                     setQuizResults(null);
                     setSelectedQuiz(null);
                     setIsPlaying(false);
-                    // Reset tab to practice tests
                     setActiveTab('quizzes');
                   }}
-                  className="flex-1 border border-slate-150 hover:border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-sans font-bold text-xs py-3 rounded-xl cursor-pointer transition-all text-center"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-sans font-bold text-xs py-3 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2 shadow-md"
                 >
-                  Return to Dashboard
-                </button>
-                <button
-                  onClick={() => handleStartQuiz(selectedQuiz)}
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-sans font-bold text-xs py-3 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span>Retake Practice Test</span>
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>{isRtl ? 'تمام امتحانی پرچوں پر واپس جائیں' : 'Back to Available Test Papers'}</span>
                 </button>
               </div>
 
