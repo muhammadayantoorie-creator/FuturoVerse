@@ -335,10 +335,7 @@ export const Classes: React.FC = () => {
           </div>
         </div>
         <Button
-          onClick={() => {
-            setCreateError(null);
-            setCreateOpen(true);
-          }}
+          onClick={() => setCreateOpen(true)}
           className="cursor-pointer gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-md rounded-xl font-sans font-semibold py-2.5 px-4 inline-flex items-center"
         >
           <Plus className="w-5 h-5" />
