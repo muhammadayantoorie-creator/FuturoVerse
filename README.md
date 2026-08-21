@@ -58,16 +58,19 @@ Whether you are a **Student** seeking interactive study guides and instant AI tu
 
 ### 🤖 Intelligent AI Learning Suite
 Powered by Google Gemini 2.5 Models via `@google/genai`:
+- **🎙️ AI Voice Learning Companion**: Hands-free real-time conversational audio tutor with speech recognition, natural voice synthesis in English & Urdu (`ur-PK`), and an animated glowing audio waveform visualizer.
+- **📸 Multimodal AI Vision Problem Solver**: Upload handwritten math equations, calculus integrals, or physics diagrams for instant step-by-step LaTeX derivations and practice challenges with 1-click presentation demos.
+- **🧠 Interactive Mind Map & Concept Tree Studio**: Visual hierarchical concept topology graph with interactive node dossiers, governing mathematical formulas, and 1-question verification drills.
 - **Executive Summaries**: Transform dense course lectures into crystal-clear study summaries.
 - **AI Practice Quizzes**: Generate contextual multiple-choice and short-answer quizzes from uploaded documents.
 - **Homework & Assignment Creator**: Build structured assignments with grading rubrics in seconds.
 - **Active Flashcards**: Spaced-repetition friendly concept cards for rapid revision.
 - **Solved Practice & Drills**: Step-by-step mathematical, algorithmic, and theoretical problem solutions.
-- **Mind Map & Concept Trees**: Visual hierarchical breakdowns of complex interconnected topics.
 - **Interactive Chat Assistant**: Real-time contextual Q&A with document upload support and markdown rendering.
 
 ### 📝 Interactive Quiz & Assessment Engine
-- **Live Quiz Player**: Clean, distraction-free student testing environment with timers and instant scoring.
+- **⚔️ Gamified 1v1 AI Battle Arena**: Live speed duel quiz against adaptive AI opponents with round timers, streak combos (2x, 3x multipliers), score races, and mastery XP rewards.
+- **Live Quiz Player**: Clean, distraction-free student testing environment with timers, anti-cheat proctoring logs, and instant scoring.
 - **AI-Powered & Manual Quiz Builder**: Teachers can create quizzes either via instant AI generation or with the custom question editor.
 - **Automated Explanations**: Immediate, step-by-step reasoning for both correct and incorrect answers.
 - **Export to PDF**: Generate polished assessment sheets and solution keys with one click using `jspdf`.
