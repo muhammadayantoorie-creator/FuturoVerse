@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Swords, Flame, Trophy, Zap, Clock, ShieldCheck, RefreshCw, Star, CheckCircle, XCircle, ArrowRight, Award } from 'lucide-react';
 import { MathRenderer } from '@/src/components/shared/MathRenderer';
+import { useToast } from '@/src/components/shared/Toast';
 
 interface BattleQuestion {
   id: number;
@@ -60,6 +61,7 @@ const BATTLE_QUESTIONS: BattleQuestion[] = [
 ];
 
 export const QuizBattleArena: React.FC<{ onBackToQuizzes: () => void }> = ({ onBackToQuizzes }) => {
+  const { success, error, info } = useToast();
   const [gameState, setGameState] = useState<'lobby' | 'countdown' | 'battle' | 'results'>('lobby');
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [playerScore, setPlayerScore] = useState(0);
@@ -158,6 +160,15 @@ export const QuizBattleArena: React.FC<{ onBackToQuizzes: () => void }> = ({ onB
     } else {
       setStreak(0);
       setMultiplier(1);
+    }
+
+    // Streak toast feedback
+    if (isCorrect && streak + 1 >= 3) {
+      success(`🔥 ${streak + 1}× Streak!`, 'Combo multiplier activated — massive bonus!');
+    } else if (isCorrect && streak + 1 >= 2) {
+      info('⚡ 2× Streak!', 'Keep going for a higher multiplier!');
+    } else if (!isCorrect && optionIdx !== -1) {
+      error('Incorrect!', `Correct answer was option ${currentQ.correctIndex + 1}`);
     }
 
     // Advance to next after 2.2s
@@ -372,61 +383,94 @@ export const QuizBattleArena: React.FC<{ onBackToQuizzes: () => void }> = ({ onB
 
       {/* 4. RESULTS VIEW */}
       {gameState === 'results' && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="p-8 bg-gradient-to-b from-slate-900 to-slate-950 border border-emerald-500/40 rounded-3xl shadow-2xl text-center space-y-6"
-        >
-          {playerScore >= aiScore ? (
-            <div className="space-y-2">
-              <div className="w-20 h-20 mx-auto rounded-3xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                <Trophy className="w-10 h-10 animate-bounce" />
-              </div>
-              <h2 className="text-3xl font-black text-emerald-400">VICTORY ACHIEVED! 🏆</h2>
-              <p className="text-slate-300 text-sm">You outperformed the adaptive AI model in speed & accuracy!</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <div className="w-20 h-20 mx-auto rounded-3xl bg-purple-500/20 text-purple-400 border border-purple-500/40 flex items-center justify-center">
-                <Award className="w-10 h-10" />
-              </div>
-              <h2 className="text-3xl font-black text-purple-400">AI WON THIS ROUND</h2>
-              <p className="text-slate-300 text-sm">Great effort! Review the topics below to level up your speed.</p>
-            </div>
-          )}
-
-          {/* Final Match Stats */}
-          <div className="grid grid-cols-3 gap-3 max-w-lg mx-auto">
-            <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">Your Score</span>
-              <span className="text-xl font-black text-emerald-400">{playerScore}</span>
-            </div>
-            <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">AI Score</span>
-              <span className="text-xl font-black text-purple-400">{aiScore}</span>
-            </div>
-            <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">Mastery XP</span>
-              <span className="text-xl font-black text-amber-400">+350 XP</span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center gap-4 pt-4">
-            <button
-              onClick={startBattle}
-              className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-2xl text-xs transition-all shadow-lg flex items-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" /> Rematch AI
-            </button>
-            <button
-              onClick={onBackToQuizzes}
-              className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-2xl text-xs transition-colors"
-            >
-              Return to Quizzes →
-            </button>
-          </div>
-        </motion.div>
+        <BattleResultsView
+          playerScore={playerScore}
+          aiScore={aiScore}
+          onRematch={startBattle}
+          onBack={onBackToQuizzes}
+        />
       )}
     </div>
+  );
+};
+
+interface BattleResultsViewProps {
+  playerScore: number;
+  aiScore: number;
+  onRematch: () => void;
+  onBack: () => void;
+}
+
+const BattleResultsView: React.FC<BattleResultsViewProps> = ({ playerScore, aiScore, onRematch, onBack }) => {
+  const { success, info } = useToast();
+  const isWinner = playerScore >= aiScore;
+
+  useEffect(() => {
+    if (isWinner) {
+      success('🏆 Victory!', `You beat Dr. CyberNova with ${playerScore} pts!`);
+      if (typeof (window as any).__triggerConfetti === 'function') {
+        setTimeout(() => (window as any).__triggerConfetti(), 300);
+      }
+    } else {
+      info('Keep practicing!', `AI scored ${aiScore} pts. Study and try again!`);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="p-8 bg-gradient-to-b from-slate-900 to-slate-950 border border-emerald-500/40 rounded-3xl shadow-2xl text-center space-y-6"
+    >
+      {isWinner ? (
+        <div className="space-y-2">
+          <div className="w-20 h-20 mx-auto rounded-3xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+            <Trophy className="w-10 h-10 animate-bounce" />
+          </div>
+          <h2 className="text-3xl font-black text-emerald-400">VICTORY ACHIEVED! 🏆</h2>
+          <p className="text-slate-300 text-sm">You outperformed the adaptive AI model in speed & accuracy!</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <div className="w-20 h-20 mx-auto rounded-3xl bg-purple-500/20 text-purple-400 border border-purple-500/40 flex items-center justify-center">
+            <Award className="w-10 h-10" />
+          </div>
+          <h2 className="text-3xl font-black text-purple-400">AI WON THIS ROUND</h2>
+          <p className="text-slate-300 text-sm">Great effort! Review the topics below to level up your speed.</p>
+        </div>
+      )}
+
+      {/* Final Match Stats */}
+      <div className="grid grid-cols-3 gap-3 max-w-lg mx-auto">
+        <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+          <span className="text-[10px] text-slate-400 font-bold uppercase block">Your Score</span>
+          <span className="text-xl font-black text-emerald-400">{playerScore}</span>
+        </div>
+        <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+          <span className="text-[10px] text-slate-400 font-bold uppercase block">AI Score</span>
+          <span className="text-xl font-black text-purple-400">{aiScore}</span>
+        </div>
+        <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+          <span className="text-[10px] text-slate-400 font-bold uppercase block">Mastery XP</span>
+          <span className="text-xl font-black text-amber-400">+350 XP</span>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center gap-4 pt-4">
+        <button
+          onClick={onRematch}
+          className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-2xl text-xs transition-all shadow-lg flex items-center gap-2"
+        >
+          <RefreshCw className="w-4 h-4" /> Rematch AI
+        </button>
+        <button
+          onClick={onBack}
+          className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-2xl text-xs transition-colors"
+        >
+          Return to Quizzes →
+        </button>
+      </div>
+    </motion.div>
   );
 };

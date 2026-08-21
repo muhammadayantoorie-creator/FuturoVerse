@@ -1,0 +1,43 @@
+{
+  "name": "FuturoVerse - AI Smart Classroom",
+  "short_name": "FuturoVerse",
+  "description": "Bilingual AI-powered smart classroom & curriculum platform for Pakistani education",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#051b18",
+  "theme_color": "#0d9488",
+  "orientation": "portrait-primary",
+  "lang": "en-PK",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "AI Tools",
+      "short_name": "AI Tools",
+      "description": "Open AI Learning Suite",
+      "url": "/?tab=ai-tools",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Quizzes",
+      "short_name": "Quizzes",
+      "description": "Open Quiz Engine",
+      "url": "/?tab=quizzes",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": []
+}

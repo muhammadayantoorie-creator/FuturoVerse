@@ -3,11 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FuturoVerse - Bilingual Smart Classroom & Curriculum Platform</title>
+    <title>FuturoVerse - Bilingual AI Smart Classroom & Curriculum Platform</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="FuturoVerse is a bilingual (English & Urdu) AI-powered smart classroom platform for Pakistani education — featuring AI quizzes, voice tutoring, mind maps, and more." />
+    <meta name="keywords" content="AI classroom, Pakistan education, bilingual learning, Urdu, smart classroom, AI tutor, quiz engine" />
+    <meta name="author" content="FuturoVerse Team" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0d9488" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="FuturoVerse" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="FuturoVerse - AI Smart Classroom" />
+    <meta property="og:description" content="Bilingual AI-powered smart classroom for Pakistani students and teachers." />
+    <meta property="og:image" content="/icon-512.png" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
+
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {
+            // Service worker registration failed, app works normally without it
+          });
+        });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
