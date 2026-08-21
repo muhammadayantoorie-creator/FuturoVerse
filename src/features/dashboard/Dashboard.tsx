@@ -339,16 +339,50 @@ export const Dashboard: React.FC = () => {
     return days;
   };
 
-  // Check if a calendar day has scheduled lessons
+  // Check if a calendar day has scheduled lessons matching the user's classes
   const dayHasLesson = (dayNum: number) => {
     const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-    return todaysLessons.some((l: any) => l.date === dateStr);
+    const dayLessons = todaysLessons.filter((l: any) => l.date === dateStr);
+
+    if (currentRole !== 'admin' && classes && classes.length > 0) {
+      return dayLessons.some((les: any) => {
+        return classes.some((cls: any) => {
+          const clsName = (cls.name || '').toLowerCase();
+          const clsCode = (cls.subjectCode || '').toLowerCase();
+          const lesSubject = (les.subject || '').toLowerCase();
+          return (
+            clsName.includes(lesSubject) || 
+            lesSubject.includes(clsName) || 
+            clsCode.includes(lesSubject) || 
+            lesSubject.includes(clsCode)
+          );
+        });
+      });
+    }
+    return dayLessons.length > 0;
   };
 
-  // Filter lessons based on selected day
+  // Filter lessons based on selected day and filter by user's active classes/subjects
   const getSelectedDayLessons = () => {
     const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
-    return todaysLessons.filter((l: any) => l.date === dateStr);
+    const dayLessons = todaysLessons.filter((l: any) => l.date === dateStr);
+
+    if (currentRole !== 'admin' && classes && classes.length > 0) {
+      return dayLessons.filter((les: any) => {
+        return classes.some((cls: any) => {
+          const clsName = (cls.name || '').toLowerCase();
+          const clsCode = (cls.subjectCode || '').toLowerCase();
+          const lesSubject = (les.subject || '').toLowerCase();
+          return (
+            clsName.includes(lesSubject) || 
+            lesSubject.includes(clsName) || 
+            clsCode.includes(lesSubject) || 
+            lesSubject.includes(clsCode)
+          );
+        });
+      });
+    }
+    return dayLessons;
   };
 
   const askAiAboutTopic = (topic: string) => {
