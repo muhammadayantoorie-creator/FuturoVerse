@@ -67,28 +67,31 @@ let cachedDb: any = null;
 
 async function loadDbFromFirestore() {
   try {
-    const docRef = firestoreDb.collection('app').doc('database');
-    const docSnap = await docRef.get();
-    if (docSnap.exists) {
-      cachedDb = docSnap.data();
-      console.log('Database loaded successfully from Firestore.');
-    } else {
-      console.log('No database found in Firestore, initializing with default Pakistani curriculum data.');
-      cachedDb = initialDb;
-      await docRef.set(initialDb);
+    if (firestoreDb && process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      const docRef = firestoreDb.collection('app').doc('database');
+      const docSnap = await docRef.get().catch((err: any) => {
+        console.warn('Firestore read error:', err?.message || err);
+        return null;
+      });
+      if (docSnap && docSnap.exists) {
+        cachedDb = docSnap.data();
+        console.log('Database loaded successfully from Firestore.');
+        return;
+      }
     }
   } catch (err) {
-    console.warn('Database loading from Firestore is in fallback mode (pending IAM/network config). Loading local file-based storage (db.json)...');
-    if (fs.existsSync(DB_FILE)) {
-      try {
-        cachedDb = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-        console.log('Database loaded successfully from local file db.json.');
-      } catch (fileErr) {
-        cachedDb = initialDb;
-      }
-    } else {
+    console.warn('Database loading from Firestore is in fallback mode (pending ADC config). Loading local file-based storage (db.json)...');
+  }
+
+  if (fs.existsSync(DB_FILE)) {
+    try {
+      cachedDb = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+      console.log('Database loaded successfully from local file db.json.');
+    } catch (fileErr) {
       cachedDb = initialDb;
     }
+  } else {
+    cachedDb = initialDb;
   }
 }
 
@@ -473,12 +476,14 @@ function saveDb(data: any) {
   } catch (err) {
     console.error('Failed to save db file', err);
   }
-  // Sync to Firestore in the background
+  // Sync to Firestore in the background if credentials exist
   try {
-    const sanitized = removeUndefined(data);
-    firestoreDb.collection('app').doc('database').set(sanitized).catch((err: any) => {
-      console.warn('Database background sync to Firestore is in fallback mode. Local db.json successfully updated.', err);
-    });
+    if (firestoreDb && process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      const sanitized = removeUndefined(data);
+      firestoreDb.collection('app').doc('database').set(sanitized).catch((err: any) => {
+        console.warn('Database background sync to Firestore is in fallback mode. Local db.json successfully updated.', err?.message || err);
+      });
+    }
   } catch (err) {
     console.error('Failed to sanitize/save db in Firestore background', err);
   }
