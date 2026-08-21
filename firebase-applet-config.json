@@ -1,10 +1,9 @@
 {
-  "projectId": "mythic-compass-c40ks",
-  "appId": "1:472984516960:web:a54a5d10a7a51b64d14605",
-  "apiKey": "AIzaSyAIwhPYsO1FN5iNdv-FdIOpAi9Fm1plrMI",
-  "authDomain": "mythic-compass-c40ks.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-classcopilot-067c9dc3-2d02-4ffb-8532-5e86f63bf6f4",
-  "storageBucket": "mythic-compass-c40ks.firebasestorage.app",
-  "messagingSenderId": "472984516960",
-  "measurementId": ""
+  "projectId": "futuroverse-3ade9",
+  "appId": "1:684713784155:web:e8ff4ad8a20370f922207e",
+  "apiKey": "AIzaSyAVy9Ya_xjnWnFHM-7BKvX9fHtQkOcJX0M",
+  "authDomain": "futuroverse-3ade9.firebaseapp.com",
+  "storageBucket": "futuroverse-3ade9.firebasestorage.app",
+  "messagingSenderId": "684713784155",
+  "measurementId": "G-LDY7TZBLMJ"
 }
