@@ -600,7 +600,7 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
                     <input
                       id="register-name"
                       type="text"
-                      placeholder={selectedRole === 'teacher' ? 'Prof. Kamran Tariq' : selectedRole === 'student' ? 'Zainab Fatima' : 'Dean Tariq Mehmood'}
+                      placeholder="Enter your full name"
                       {...registerForm.register('name')}
                       className="w-full bg-slate-900/50 border border-slate-700/60 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-colors"
                     />
@@ -620,7 +620,7 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
                     <input
                       id="register-email"
                       type="email"
-                      placeholder={selectedRole === 'teacher' ? 'kamran@fast.edu.pk' : selectedRole === 'student' ? 'zainab@student.edu.pk' : 'admin@college.edu.pk'}
+                      placeholder="yourname@institution.edu.pk"
                       {...registerForm.register('email')}
                       className="w-full bg-slate-900/50 border border-slate-700/60 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-colors"
                     />
@@ -638,9 +638,9 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
                   <div className="relative">
                     <Building className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
                     <input
-                      id="register-dept"
+                      id="register-extra"
                       type="text"
-                      placeholder={selectedRole === 'teacher' ? 'Department of Physics' : selectedRole === 'student' ? 'FSc Pre-Medical / Roll 1042' : 'Dean of Academics'}
+                      placeholder={selectedRole === 'teacher' ? 'e.g. Department of Physics' : selectedRole === 'student' ? 'e.g. Roll No. 2026-CS-042' : 'e.g. Office of the Dean'}
                       {...registerForm.register('departmentOrClass')}
                       className="w-full bg-slate-900/50 border border-slate-700/60 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-colors"
                     />

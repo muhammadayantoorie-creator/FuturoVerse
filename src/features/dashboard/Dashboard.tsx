@@ -339,7 +339,7 @@ export const Dashboard: React.FC = () => {
 
   const askAiAboutTopic = (topic: string) => {
     addAiChatMessage('user', `Can you explain the key concepts of "${topic}" and provide some basic practice questions?`);
-    addAiChatMessage('bot', `Hello Ahmed! Let's review **${topic}**. I am preparing a tailored explanation with formulas and concept definitions. What specific part would you like to focus on first?`);
+    addAiChatMessage('bot', `Hello ${currentUser.name || 'Student'}! Let's review **${topic}**. I am preparing a tailored explanation with formulas and concept definitions. What specific part would you like to focus on first?`);
     setAiTutorOpen(true);
   };
 
@@ -996,7 +996,7 @@ export const Dashboard: React.FC = () => {
             {currentRole === 'admin' ? '🛡️ Campus Executive Administration' : `${getTranslation(locale, 'roleTeacher') || 'Professor'} Workspace`}
           </span>
           <h2 className="text-3xl md:text-4xl font-bold font-sans tracking-tight">
-            {currentRole === 'admin' ? `Welcome, ${currentUser.name || 'Dean Tariq Mehmood'}!` : `${getTranslation(locale, 'goodMorningProf')} 👋`}
+            {currentRole === 'admin' ? `Welcome, ${currentUser.name || 'Administrator'}!` : `Welcome back, ${currentUser.name || 'Professor'}! 👋`}
           </h2>
           <p className="text-teal-50/90 text-sm max-w-xl">
             {currentRole === 'admin' 

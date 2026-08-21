@@ -178,15 +178,18 @@ export const Layout: React.FC<LayoutProps> = ({ children, onNavigateToLanding })
           )}
         </div>
 
-        {/* Role Badge Indicator */}
-        <div className="mb-3 px-3 py-2 rounded-xl bg-slate-200/60 dark:bg-slate-800/80 border border-slate-300/40 dark:border-slate-700/50 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {currentRole === 'teacher' && <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
-            {currentRole === 'student' && <GraduationCap className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
-            {currentRole === 'admin' && <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400" />}
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-              {currentRole === 'teacher' ? 'Teacher Workspace' : currentRole === 'student' ? 'Student Portal' : 'Admin All-Access'}
-            </span>
+        {/* User Identity & Role Badge */}
+        <div className="mb-3 px-3 py-2.5 rounded-xl bg-slate-200/60 dark:bg-slate-800/80 border border-slate-300/40 dark:border-slate-700/50 flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-full overflow-hidden bg-primary-container border border-slate-300 dark:border-slate-600 shrink-0">
+            <img src={currentUser.avatarUrl} alt={currentUser.name} className="w-full h-full object-cover" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
+              {currentUser.name || 'User Account'}
+            </p>
+            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 capitalize">
+              {currentRole === 'teacher' ? '👨‍🏫 Teacher' : currentRole === 'student' ? '🎓 Student' : '🛡️ Admin'}
+            </p>
           </div>
         </div>
 
@@ -402,12 +405,22 @@ export const Layout: React.FC<LayoutProps> = ({ children, onNavigateToLanding })
             </div>
 
             {/* Avatar Profile */}
-            <div className="w-8 h-8 rounded-full overflow-hidden bg-primary-container border border-slate-200 dark:border-slate-700">
-              <img 
-                src={currentUser.avatarUrl} 
-                alt={currentUser.name} 
-                className="w-full h-full object-cover"
-              />
+            <div className="flex items-center gap-2.5 pl-1.5 py-1 pr-2.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60">
+              <div className="w-7 h-7 rounded-full overflow-hidden bg-primary-container border border-slate-300 dark:border-slate-600 shrink-0">
+                <img 
+                  src={currentUser.avatarUrl} 
+                  alt={currentUser.name} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="hidden sm:flex flex-col text-left leading-none">
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate max-w-[130px]">
+                  {currentUser.name || 'User'}
+                </span>
+                <span className="text-[9px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-0.5">
+                  {currentRole}
+                </span>
+              </div>
             </div>
           </div>
         </header>

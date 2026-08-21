@@ -290,7 +290,7 @@ function getDb() {
         id: 'usr_teacher',
         email: 'teacher@example.com',
         password: bcrypt.hashSync('Password123!', 10),
-        name: 'Professor Kamran',
+        name: 'Faculty Instructor',
         role: 'teacher',
         createdAt: new Date().toISOString()
       },

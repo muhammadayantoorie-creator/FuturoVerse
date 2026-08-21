@@ -453,7 +453,7 @@ export const HelpCenter: React.FC = () => {
                     required
                     value={formEmail}
                     onChange={(e) => setFormEmail(e.target.value)}
-                    placeholder={isRtl ? 'email@domain.com' : 'e.g. kamran@uol.edu.pk'}
+                    placeholder={isRtl ? 'email@domain.com' : 'e.g. user@institution.edu.pk'}
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2 px-3.5 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition-all text-slate-800 dark:text-slate-100 font-sans"
                   />
                 </div>

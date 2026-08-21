@@ -71,9 +71,9 @@ interface AppState {
 }
 
 const initialUser: User = {
-  id: 'usr_ahmed',
-  name: 'Ahmed',
-  email: 'ahmed.alipk@uol.edu.pk',
+  id: 'usr_student',
+  name: 'Student User',
+  email: 'student@domain.edu.pk',
   role: 'student',
   avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC1jpDL0T17Nug1I73cKFaluo__r7LzQwxx6PsTUeiM0PfB0KlnSyBK5Gry5_OqPHSu2XUeiLHD0Pdgl8c-FK1Nh3ekz_yu2JDPjldCEwf2xom-BnUr3BRfYFoOKs-KxtJsF9Sn0_bmZZ3xkm_zpTa7yzbvyGvm8KxE63XBzDRXTGUNIFpriJG7TBj5SU4ituE492UPv8YljJ3pdhsSM98_2YKFMEOD68dkMEuppByzzUSEjWiE1ImHHA',
   semesterProgress: 75,

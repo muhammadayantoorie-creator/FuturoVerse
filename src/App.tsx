@@ -98,9 +98,9 @@ function AppContent() {
 
   const handleExploreDemo = (role: Role = 'teacher') => {
     const mockUsers: Record<Role, { id: string; name: string; email: string; role: Role }> = {
-      teacher: { id: 'demo-teacher', name: 'Prof. Kamran Tariq', email: 'kamran@fast.edu.pk', role: 'teacher' },
-      student: { id: 'demo-student', name: 'Ahmed Ali', email: 'ahmed@student.edu.pk', role: 'student' },
-      admin: { id: 'demo-admin', name: 'Dean Tariq Mehmood', email: 'admin@college.edu.pk', role: 'admin' },
+      teacher: { id: 'demo-teacher', name: 'Demo Professor', email: 'teacher@institution.edu.pk', role: 'teacher' },
+      student: { id: 'demo-student', name: 'Demo Student', email: 'student@institution.edu.pk', role: 'student' },
+      admin: { id: 'demo-admin', name: 'Demo Administrator', email: 'admin@institution.edu.pk', role: 'admin' },
       guest: { id: 'demo-guest', name: 'Guest Observer', email: 'guest@example.com', role: 'guest' },
     };
 

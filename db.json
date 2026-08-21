@@ -535,7 +535,7 @@
       "id": "usr_teacher",
       "email": "teacher@example.com",
       "password": "$2b$10$m5.YBtxXLXa4rGwFg2VT4.Mrfm59wwIpFMDmpcssfqlp3/IwJMBmy",
-      "name": "Professor Kamran",
+      "name": "Faculty Instructor",
       "role": "teacher",
       "createdAt": "2026-08-20T05:20:50.037Z"
     },
