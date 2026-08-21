@@ -1119,37 +1119,189 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth, onEx
         </div>
       </section>
 
-      {/* 9. FOOTER */}
-      <footer className="py-12 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-500 dark:text-slate-400 text-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <img
-              src="/logo.jpg"
-              alt="FuturoVerse Logo"
-              className="h-9 w-auto object-contain rounded-lg"
-            />
-            <div>
-              <span className="font-bold text-slate-800 dark:text-slate-200">FuturoVerse Pakistan</span>
-              <p className="text-[10px] text-slate-400">© {new Date().getFullYear()} FuturoVerse. FBISE & HEC Compliant.</p>
+      {/* 9. PROFESSIONAL FOOTER */}
+      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-500 dark:text-slate-400">
+
+        {/* Top CTA Strip */}
+        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 py-5 px-6">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-white text-center sm:text-left">
+              <p className="font-black text-base sm:text-lg">Start Free — No Credit Card Required</p>
+              <p className="text-emerald-100 text-xs mt-0.5">5 free AI uses included. Upgrade any time.</p>
+            </div>
+            <button
+              onClick={() => onNavigateToAuth('register')}
+              className="shrink-0 px-6 py-2.5 bg-white text-emerald-700 font-black text-sm rounded-2xl hover:bg-emerald-50 transition-all shadow-md active:scale-95 cursor-pointer"
+            >
+              Get Started Free →
+            </button>
+          </div>
+        </div>
+
+        {/* Main Footer Grid */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
+
+            {/* Brand Column */}
+            <div className="lg:col-span-2 space-y-5">
+              <img src="/logo.jpg" alt="FuturoVerse Logo" className="h-14 w-auto object-contain rounded-xl" />
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs">
+                Pakistan's first bilingual AI-powered smart classroom platform — empowering teachers, students, and institutions with next-generation learning tools in Urdu & English.
+              </p>
+
+              {/* Contact Info */}
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400">
+                  <Mail className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span>support@futuroverse.pk</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400">
+                  <Globe className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span>www.futuroverse.pk</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400">
+                  <School className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span>Lahore, Punjab, Pakistan 🇵🇰</span>
+                </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="flex items-center gap-3 pt-1">
+                {[
+                  { label: 'FB', href: '#', color: 'hover:bg-blue-600' },
+                  { label: 'TW', href: '#', color: 'hover:bg-sky-500' },
+                  { label: 'LI', href: '#', color: 'hover:bg-blue-700' },
+                  { label: 'YT', href: '#', color: 'hover:bg-rose-600' },
+                ].map(({ label, href, color }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    className={`w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-500 dark:text-slate-400 hover:text-white transition-all ${color} cursor-pointer`}
+                  >
+                    {label}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Product Column */}
+            <div className="space-y-4">
+              <h5 className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider">Product</h5>
+              <ul className="space-y-2.5 text-sm">
+                {[
+                  { label: 'Features', href: '#features' },
+                  { label: 'AI Tools', href: '#features' },
+                  { label: 'Quiz Engine', href: '#preview' },
+                  { label: 'Gradebook', href: '#solutions' },
+                  { label: 'Analytics', href: '#solutions' },
+                  { label: 'Pricing', href: '#pricing' },
+                ].map(({ label, href }) => (
+                  <li key={label}>
+                    <a href={href} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Solutions Column */}
+            <div className="space-y-4">
+              <h5 className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider">Solutions</h5>
+              <ul className="space-y-2.5 text-sm">
+                {[
+                  { label: 'For Teachers', href: '#solutions' },
+                  { label: 'For Students', href: '#solutions' },
+                  { label: 'For Admins', href: '#solutions' },
+                  { label: 'For Schools', href: '#pricing' },
+                  { label: 'For Universities', href: '#pricing' },
+                  { label: 'FBISE Aligned', href: '#curriculum' },
+                  { label: 'HEC Compliant', href: '#curriculum' },
+                ].map(({ label, href }) => (
+                  <li key={label}>
+                    <a href={href} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Company Column */}
+            <div className="space-y-4">
+              <h5 className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider">Company</h5>
+              <ul className="space-y-2.5 text-sm">
+                {[
+                  { label: 'About FuturoVerse', href: '#' },
+                  { label: 'Blog & Updates', href: '#' },
+                  { label: 'Help Center / FAQ', href: '#faq' },
+                  { label: 'Privacy Policy', href: '#' },
+                  { label: 'Terms of Service', href: '#' },
+                  { label: 'Cookie Policy', href: '#' },
+                ].map(({ label, href }) => (
+                  <li key={label}>
+                    <a href={href} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="pt-2 space-y-2">
+                <button
+                  onClick={() => onNavigateToAuth('register')}
+                  className="text-xs font-black text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                >
+                  → Sign Up Free
+                </button>
+                <br />
+                <button
+                  onClick={() => onNavigateToAuth('login')}
+                  className="text-xs font-semibold hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+                >
+                  → Portal Login
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-6 font-semibold">
-            <a href="#features" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-              {isRtl ? 'خصوصیات' : 'Features'}
-            </a>
-            <a href="#solutions" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-              {isRtl ? 'رولز' : 'Roles'}
-            </a>
-            <a href="#curriculum" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-              {isRtl ? 'بورڈز' : 'Boards'}
-            </a>
-            <button 
-              onClick={() => onNavigateToAuth('login')}
-              className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline cursor-pointer"
-            >
-              {isRtl ? 'پورٹل لاگ ان' : 'Portal Login'}
-            </button>
+          {/* Trust badges row */}
+          <div className="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-5">
+            {[
+              { icon: ShieldCheck, title: 'FBISE Aligned', sub: 'Federal Board curriculum compliant' },
+              { icon: Award, title: 'HEC Approved', sub: 'University-grade standard content' },
+              { icon: Lock, title: 'Data Secure', sub: 'End-to-end encrypted & private' },
+              { icon: Globe, title: 'Bilingual Platform', sub: 'Full Urdu + English support' },
+            ].map(({ icon: Icon, title, sub }) => (
+              <div key={title} className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                  <Icon className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{title}</p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">{sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom legal row */}
+          <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px]">
+            <p className="text-slate-400 dark:text-slate-500 text-center sm:text-left">
+              © {new Date().getFullYear()} <span className="font-bold text-slate-600 dark:text-slate-300">FuturoVerse Pakistan</span>. All rights reserved. · FBISE & HEC Compliant · Made with ❤️ in Pakistan
+            </p>
+            <div className="flex items-center gap-4 text-slate-400 dark:text-slate-500 font-semibold">
+              <a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Privacy</a>
+              <a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Terms</a>
+              <a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Cookies</a>
+              <button
+                onClick={() => setLocale(locale === 'en' ? 'ur' : 'en')}
+                className="flex items-center gap-1.5 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+              >
+                <Languages className="w-3.5 h-3.5" />
+                <span>{locale === 'en' ? 'اردو' : 'English'}</span>
+              </button>
+            </div>
           </div>
         </div>
       </footer>
