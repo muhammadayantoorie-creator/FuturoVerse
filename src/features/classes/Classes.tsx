@@ -946,20 +946,28 @@ const CreateClassDialog: React.FC<CreateClassDialogProps> = React.memo(
       }
     }, [isOpen]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!name.trim() || !subjectCode.trim() || !department) {
-        setError(t('Please fill in all required fields (Course Name, Subject Code, Department).', 'براہ کرم تمام مطلوبہ معلومات فراہم کریں۔'));
+    const handleSubmit = async (e?: React.FormEvent) => {
+      if (e && e.preventDefault) e.preventDefault();
+      if (!name.trim()) {
+        setError(t('Please enter a Class / Course Name.', 'براہ کرم کلاس کا نام درج کریں۔'));
         return;
       }
+      
+      const cleanName = name.trim();
+      const cleanCode = subjectCode.trim()
+        ? subjectCode.trim().toUpperCase()
+        : `${cleanName.substring(0, 4).toUpperCase().replace(/[^A-Z0-9]/g, '') || 'CRS'}-${Math.floor(100 + Math.random() * 900)}`;
+      const cleanDept = department.trim() || 'Physics';
+      const cleanSec = section.trim() || 'Section A';
+
       setSubmitting(true);
       setError(null);
       try {
         await onSubmit({
-          name: name.trim(),
-          subjectCode: subjectCode.trim().toUpperCase(),
-          department,
-          section: section.trim() || 'Section A',
+          name: cleanName,
+          subjectCode: cleanCode,
+          department: cleanDept,
+          section: cleanSec,
           room: room.trim(),
           description: description.trim(),
           status: 'active',
@@ -988,7 +996,8 @@ const CreateClassDialog: React.FC<CreateClassDialogProps> = React.memo(
               {t('Cancel', 'کینسل')}
             </Button>
             <Button
-              onClick={handleSubmit}
+              type="button"
+              onClick={() => handleSubmit()}
               disabled={submitting}
               className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-sans font-semibold px-4 flex items-center gap-1.5 cursor-pointer"
             >
@@ -1021,25 +1030,23 @@ const CreateClassDialog: React.FC<CreateClassDialogProps> = React.memo(
 
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label={t('Subject Code *', 'مضمون کوڈ *')}
+                label={t('Subject Code (Optional)', 'مضمون کوڈ (اختیاری)')}
                 placeholder={t('e.g., PHYS-101', 'مثال کے طور پر: PHYS-101')}
                 value={subjectCode}
                 onChange={(e) => setSubjectCode(e.target.value)}
-                required
               />
 
               <Input
-                label={t('Section / Batch *', 'سیکشن / بیچ *')}
+                label={t('Section / Batch', 'سیکشن / بیچ')}
                 placeholder={t('e.g., Section A, Section B, Morning', 'مثال: سیکشن اے، بی، مارننگ')}
                 value={section}
                 onChange={(e) => setSection(e.target.value)}
-                required
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <Select
-                label={t('Department *', 'شعبہ جات *')}
+                label={t('Department', 'شعبہ جات')}
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
                 options={departments.map((dept) => ({ value: dept, label: dept }))}

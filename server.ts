@@ -1978,15 +1978,15 @@ app.post('/api/classrooms', (req, res) => {
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Class / Course Name is required.' });
     }
-    if (!subjectCode || !subjectCode.trim()) {
-      return res.status(400).json({ error: 'Subject Code is required (e.g. PHYS-101).' });
-    }
-    if (!department || !department.trim()) {
-      return res.status(400).json({ error: 'Department is required.' });
-    }
 
-    const cleanSubjectCode = subjectCode.trim().toUpperCase();
-    const cleanSection = (section && section.trim()) ? section.trim() : 'Section A';
+    const cleanName = name.trim();
+    // Auto-derive clean subject code if omitted
+    const cleanSubjectCode = (subjectCode && subjectCode.trim())
+      ? subjectCode.trim().toUpperCase()
+      : `${cleanName.substring(0, 4).toUpperCase().replace(/[^A-Z0-9]/g, '') || 'CRS'}-${Math.floor(100 + Math.random() * 900)}`;
+
+    const cleanDepartment = (department && department.trim()) ? department.trim() : 'Physics';
+    let cleanSection = (section && section.trim()) ? section.trim() : 'Section A';
     const cleanRoom = (room && room.trim()) ? room.trim() : '';
 
     // Check duplicate by Subject Code + Section
@@ -1997,20 +1997,18 @@ app.post('/api/classrooms', (req, res) => {
     );
 
     if (duplicate) {
-      return res.status(400).json({ 
-        error: `A classroom for "${cleanSubjectCode}" with "${cleanSection}" already exists. Please provide a different section name (e.g. Section B, Morning, Evening).` 
-      });
+      cleanSection = `${cleanSection} (${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`;
     }
 
     const id = `cls_${Math.random().toString(36).substr(2, 9)}`;
     const newClassroom = {
       id,
-      name: name.trim(),
+      name: cleanName,
       subjectCode: cleanSubjectCode,
-      department: department.trim(),
+      department: cleanDepartment,
       section: cleanSection,
       room: cleanRoom,
-      description: description ? description.trim() : `Curriculum track and study resources for ${name.trim()} (${cleanSection}).`,
+      description: description ? description.trim() : `Curriculum track and study resources for ${cleanName} (${cleanSection}).`,
       status: status || 'active',
       studentCount: 0,
       students: [],
@@ -2023,7 +2021,7 @@ app.post('/api/classrooms', (req, res) => {
     db.notifications.unshift({
       id: `not_${Math.random().toString(36).substr(2, 9)}`,
       title: 'New Class Section Created',
-      message: `Class "${name.trim()}" (${cleanSection}) has been successfully added to active syllabus streams.`,
+      message: `Class "${cleanName}" (${cleanSection}) has been successfully added to active syllabus streams.`,
       read: false,
       createdAt: new Date().toISOString()
     });
