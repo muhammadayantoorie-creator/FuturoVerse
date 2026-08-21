@@ -46,13 +46,28 @@ const PageLoader = () => (
 );
 
 function AppContent() {
-  const { activeTab, currentRole, setRole } = useAppStore();
+  const { activeTab, currentRole, setRole, theme, locale } = useAppStore();
   const { data: user, isLoading } = useCurrentUserQuery();
 
   const [viewState, setViewState] = useState<'landing' | 'auth' | 'app'>('landing');
   const [authInitialView, setAuthInitialView] = useState<'login' | 'register'>('login');
   const [authInitialRole, setAuthInitialRole] = useState<Role>('teacher');
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // Globally sync theme with documentElement for Tailwind dark mode
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  // Globally sync locale and dir with documentElement
+  useEffect(() => {
+    document.documentElement.lang = locale;
+    document.documentElement.dir = locale === 'ur' ? 'rtl' : 'ltr';
+  }, [locale]);
 
   // Expose global confetti trigger for quiz victories etc.
   useEffect(() => {

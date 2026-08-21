@@ -152,8 +152,24 @@ export const useAppStore = create<AppState>((set, get) => ({
   ],
 
   setRole: (role) => set({ currentRole: role }),
-  setLocale: (locale) => set({ locale }),
-  toggleTheme: () => set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
+  setLocale: (locale) => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = locale;
+      document.documentElement.dir = locale === 'ur' ? 'rtl' : 'ltr';
+    }
+    set({ locale });
+  },
+  toggleTheme: () => set((state) => {
+    const nextTheme = state.theme === 'light' ? 'dark' : 'light';
+    if (typeof document !== 'undefined') {
+      if (nextTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+    return { theme: nextTheme };
+  }),
   setActiveTab: (tab) => set({ activeTab: tab }),
   setCreateClassModalOpen: (open) => set({ isCreateClassModalOpen: open }),
   addUploadedMaterial: (material) => set((state) => {

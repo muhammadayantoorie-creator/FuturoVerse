@@ -51,6 +51,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth, onEx
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
+  // Synchronize dark class with document element on mount and theme change
+  React.useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
