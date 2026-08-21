@@ -208,7 +208,7 @@ export function useRegisterMutation() {
       const emailClean = userData.email.trim().toLowerCase();
       let userProfile: UserProfile | null = null;
 
-      // Attempt 1: Firebase Auth + Firestore
+      // 1. Try Firebase Auth (if configured)
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, emailClean, userData.password);
         const fbUser = userCredential.user;
@@ -231,25 +231,25 @@ export function useRegisterMutation() {
           role: userData.role || 'student',
         };
       } catch (fbErr: any) {
-        console.warn('Firebase registration failed, trying backend API register...', fbErr);
+        console.warn('Firebase registration note (registering via backend API):', fbErr?.message || fbErr);
       }
 
-      // Also ensure backend DB has the user
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: userData.name.trim(),
-          email: emailClean,
-          password: userData.password,
-          role: userData.role || 'student',
-          rememberMe: userData.rememberMe ?? false,
-        }),
-      });
+      // 2. Register in backend API database
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: userData.name.trim(),
+            email: emailClean,
+            password: userData.password,
+            role: userData.role || 'student',
+            rememberMe: userData.rememberMe ?? false,
+          }),
+        });
 
-      if (res.ok) {
-        const data = await res.json();
-        if (!userProfile) {
+        if (res.ok) {
+          const data = await res.json();
           userProfile = {
             id: data.user.id,
             email: data.user.email,
@@ -257,10 +257,16 @@ export function useRegisterMutation() {
             role: data.user.role,
             studentId: data.user.studentId,
           };
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          if (!userProfile) {
+            throw new Error(errData.error || 'Failed to complete registration.');
+          }
         }
-      } else if (!userProfile) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Failed to complete registration.');
+      } catch (apiErr: any) {
+        if (!userProfile) {
+          throw apiErr;
+        }
       }
 
       if (userProfile) {
@@ -268,7 +274,7 @@ export function useRegisterMutation() {
         return { user: userProfile };
       }
 
-      throw new Error('Registration could not be completed.');
+      throw new Error('Registration could not be completed. Please try again.');
     },
     onSuccess: (data) => {
       queryClient.setQueryData(['currentUser'], data.user);
