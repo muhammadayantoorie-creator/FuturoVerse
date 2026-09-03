@@ -6,17 +6,18 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // App database rules
+    // Application data is accessed only by the trusted Express backend via the
+    // Firebase Admin SDK, which bypasses these client rules. Never expose the
+    // aggregate application document to browser clients.
     match /app/{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
 
-    // User profile rules
+    // Browser clients must not create or alter role-bearing profile documents.
+    // Profiles are provisioned by the trusted backend/Admin SDK.
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow update: if request.auth != null && request.auth.uid == userId
-                    && request.resource.data.role == resource.data.role; // Prevent role escalation
+      allow create, update: if false;
       allow delete: if false;
     }
   }

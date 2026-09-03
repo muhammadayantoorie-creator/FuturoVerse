@@ -25,108 +25,16 @@ export function useCurrentUserQuery() {
   return useQuery<UserProfile | null, Error>({
     queryKey: ['currentUser'],
     queryFn: async () => {
-      // 1. Check if user just returned from Google signInWithRedirect
-      try {
-        const redirectRes = await getRedirectResult(auth);
-        if (redirectRes && redirectRes.user) {
-          const fbUser = redirectRes.user;
-          const userDocRef = doc(db, 'users', fbUser.uid);
-          let finalRole: 'admin' | 'teacher' | 'student' = 'student';
-          let name = fbUser.displayName || 'Google User';
-          try {
-            const userDoc = await getDoc(userDocRef);
-            if (userDoc.exists()) {
-              finalRole = userDoc.data().role || 'student';
-              name = userDoc.data().name || name;
-            }
-          } catch {}
-          const userProfile: UserProfile = {
-            id: fbUser.uid,
-            email: fbUser.email || '',
-            name,
-            role: finalRole,
-          };
-          localStorage.setItem('auth_user', JSON.stringify(userProfile));
-          return userProfile;
-        }
-      } catch (redirectErr) {
-        console.warn('Redirect auth check warning:', redirectErr);
+      const res = await fetch('/api/auth/me', { credentials: 'include' });
+      if (res.status === 401) {
+        localStorage.removeItem('auth_user');
+        return null;
       }
-
-      // 2. Check if user is cached in localStorage first
-      const localUserStr = localStorage.getItem('auth_user');
-      let cachedUser: UserProfile | null = null;
-      if (localUserStr) {
-        try {
-          cachedUser = JSON.parse(localUserStr);
-        } catch {
-          // Ignore parse errors
-        }
-      }
-
-      // 3. Check Firebase Auth
-      return new Promise<UserProfile | null>((resolve) => {
-        let isResolved = false;
-
-        const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
-          unsubscribe();
-          if (isResolved) return;
-          isResolved = true;
-
-          if (fbUser) {
-            try {
-              const userDocRef = doc(db, 'users', fbUser.uid);
-              const userDoc = await getDoc(userDocRef);
-              const profile: UserProfile = userDoc.exists() ? {
-                id: fbUser.uid,
-                email: fbUser.email || '',
-                name: userDoc.data().name || fbUser.displayName || 'User',
-                role: userDoc.data().role || 'student',
-              } : {
-                id: fbUser.uid,
-                email: fbUser.email || '',
-                name: fbUser.displayName || 'New User',
-                role: 'student',
-              };
-              localStorage.setItem('auth_user', JSON.stringify(profile));
-              resolve(profile);
-              return;
-            } catch (err) {
-              console.warn('Firestore user fetch failed, falling back to basic auth info:', err);
-              const profile: UserProfile = {
-                id: fbUser.uid,
-                email: fbUser.email || '',
-                name: fbUser.displayName || fbUser.email?.split('@')[0] || 'User',
-                role: 'student',
-              };
-              localStorage.setItem('auth_user', JSON.stringify(profile));
-              resolve(profile);
-              return;
-            }
-          }
-
-          // If no Firebase user, return cached local user if available
-          if (cachedUser) {
-            resolve(cachedUser);
-          } else {
-            resolve(null);
-          }
-        }, (err) => {
-          console.warn('Firebase onAuthStateChanged error:', err);
-          if (!isResolved) {
-            isResolved = true;
-            resolve(cachedUser || null);
-          }
-        });
-
-        // Safety timeout in case Firebase auth is slow/unresponsive
-        setTimeout(() => {
-          if (!isResolved) {
-            isResolved = true;
-            resolve(cachedUser || null);
-          }
-        }, 1200);
-      });
+      if (!res.ok) throw new Error('Unable to restore your session.');
+      const payload = await res.json();
+      const user = payload.user as UserProfile;
+      localStorage.setItem('auth_user', JSON.stringify(user));
+      return user;
     },
     staleTime: 1000 * 60 * 5,
   });
@@ -137,75 +45,30 @@ export function useLoginMutation() {
   return useMutation({
     mutationFn: async (credentials: { email: string; password: string; rememberMe?: boolean }) => {
       const emailClean = credentials.email.trim().toLowerCase();
-
-      // Attempt 1: Firebase Auth
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, emailClean, credentials.password);
-        const fbUser = userCredential.user;
-        let role: 'admin' | 'teacher' | 'student' = 'student';
-        let name = fbUser.displayName || emailClean.split('@')[0];
-
-        try {
-          const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
-          if (userDoc.exists()) {
-            role = userDoc.data().role || 'student';
-            name = userDoc.data().name || name;
-          }
-        } catch {
-          // Firestore read optional
-        }
-
-        const userProfile: UserProfile = {
-          id: fbUser.uid,
-          email: fbUser.email || emailClean,
-          name,
-          role,
-        };
-
-        localStorage.setItem('auth_user', JSON.stringify(userProfile));
-        return { user: userProfile };
-      } catch (fbErr: any) {
-        console.warn('Firebase login failed, trying backend authentication API...', fbErr);
-        
-        // Attempt 2: Server-side API Auth
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            email: emailClean,
-            password: credentials.password,
-            rememberMe: credentials.rememberMe ?? false,
-          }),
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          const userProfile: UserProfile = {
-            id: data.user.id,
-            email: data.user.email,
-            name: data.user.name,
-            role: data.user.role,
-            studentId: data.user.studentId,
-          };
-          localStorage.setItem('auth_user', JSON.stringify(userProfile));
-          return { user: userProfile };
-        } else {
-          const errData = await res.json().catch(() => ({}));
-          if (res.status === 401 && errData.error) {
-            throw new Error(errData.error);
-          }
-          // Resilient session fallback
-          const userProfile: UserProfile = {
-            id: `usr_${Math.random().toString(36).substring(2, 10)}`,
-            email: emailClean,
-            name: emailClean.split('@')[0],
-            role: 'teacher',
-          };
-          localStorage.setItem('auth_user', JSON.stringify(userProfile));
-          return { user: userProfile };
-        }
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: emailClean,
+          password: credentials.password,
+          rememberMe: credentials.rememberMe ?? false,
+        }),
+      });
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.error || 'Unable to sign in. Please verify your credentials and try again.');
       }
+      const data = await res.json();
+      const userProfile: UserProfile = {
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name,
+        role: data.user.role,
+        studentId: data.user.studentId,
+      };
+      localStorage.setItem('auth_user', JSON.stringify(userProfile));
+      return { user: userProfile };
     },
     onSuccess: (data) => {
       queryClient.setQueryData(['currentUser'], data.user);
@@ -299,19 +162,17 @@ export function useRegisterMutation() {
             role: data.user.role,
             studentId: data.user.studentId,
           };
+        } else {
+          const error = await res.json().catch(() => ({}));
+          throw new Error(error.error || 'Registration could not be completed.');
         }
       } catch (apiErr: any) {
-        console.warn('Backend registration API note (using active session profile):', apiErr?.message);
+        throw new Error(apiErr?.message || 'Registration could not be completed.');
       }
 
-      // 3. Resilient session profile establishment
+      // A server session is required because protected API access is authoritative.
       if (!userProfile) {
-        userProfile = {
-          id: `usr_${Math.random().toString(36).substring(2, 10)}`,
-          email: emailClean,
-          name: nameTrimmed || emailClean.split('@')[0],
-          role: userData.role || 'teacher',
-        };
+        throw new Error('Registration did not create a server session.');
       }
 
       localStorage.setItem('auth_user', JSON.stringify(userProfile));
@@ -410,11 +271,16 @@ export function useGoogleLoginMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (role: 'student' | 'teacher' | 'admin' = 'student') => {
+      // Google login needs a server-side Firebase-token verification endpoint
+      // before it can establish the httpOnly API session used by this app.
+      // Keep it off unless that integration is explicitly enabled.
+      if ((import.meta as any).env?.VITE_ENABLE_GOOGLE_AUTH !== 'true') {
+        throw new Error('Google sign-in is not enabled for this deployment. Use email and password to continue.');
+      }
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
 
       let fbUser: any = null;
-      let usedFallback = false;
 
       try {
         const userCredential = await signInWithPopup(auth, provider);
@@ -431,8 +297,7 @@ export function useGoogleLoginMutation() {
           }
         }
 
-        // If domain is unauthorized on Firebase (e.g. localhost, unconfigured domain)
-        // or operation not allowed in Firebase console, activate instant Google SSO
+        // Never create a local role when identity-provider authentication fails.
         if (
           popupErr?.code === 'auth/unauthorized-domain' ||
           popupErr?.code === 'auth/operation-not-allowed' ||
@@ -441,26 +306,13 @@ export function useGoogleLoginMutation() {
           popupErr?.code === 'auth/invalid-api-key' ||
           !fbUser
         ) {
-          usedFallback = true;
-          const randomId = Math.random().toString(36).substring(2, 9);
-          const emailPrefix = role === 'teacher' ? 'prof.ahmed' : role === 'admin' ? 'dean.tariq' : 'ali.student';
-          const defaultName = role === 'teacher' ? 'Prof. Ahmed Raza' : role === 'admin' ? 'Dr. Tariq Khan' : 'Ali Hassan';
-
-          const fallbackProfile: UserProfile = {
-            id: `google_${role}_${randomId}`,
-            email: `${emailPrefix}@futuroverse.edu.pk`,
-            name: `${defaultName}`,
-            role: role,
-          };
-
-          localStorage.setItem('auth_user', JSON.stringify(fallbackProfile));
-          return { user: fallbackProfile, redirected: false, isFallback: true };
+          throw new Error('Google sign-in could not be completed. Use email and password to continue.');
         }
 
         throw popupErr;
       }
 
-      if (!fbUser && !usedFallback) {
+      if (!fbUser) {
         throw new Error('Google Sign-in did not complete.');
       }
 
@@ -504,4 +356,3 @@ export function useGoogleLoginMutation() {
     },
   });
 }
-

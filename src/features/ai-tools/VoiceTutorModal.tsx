@@ -30,7 +30,6 @@ export const VoiceTutorModal: React.FC<VoiceTutorModalProps> = ({ isOpen, onClos
   const [transcript, setTranscript] = useState('');
   const [language, setLanguage] = useState<'en' | 'ur'>(locale === 'ur' ? 'ur' : 'en');
   const [speechError, setSpeechError] = useState<SpeechErrorType>(null);
-  const [micGranted, setMicGranted] = useState<boolean | null>(null);
   const [voiceHistory, setVoiceHistory] = useState<HistoryItem[]>([
     {
       sender: 'ai',
@@ -42,8 +41,33 @@ export const VoiceTutorModal: React.FC<VoiceTutorModalProps> = ({ isOpen, onClos
   ]);
 
   const recognitionRef = useRef<any>(null);
+  const requestControllerRef = useRef<AbortController | null>(null);
   const finalTranscriptRef = useRef('');
   const historyEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    historyEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [voiceHistory, isThinking]);
+
+  // Speech recognition and synthesis continue after a component is removed unless
+  // they are explicitly stopped. Clean them up when the dialog closes/unmounts.
+  useEffect(() => {
+    if (isOpen) return;
+    recognitionRef.current?.abort();
+    recognitionRef.current = null;
+    requestControllerRef.current?.abort();
+    requestControllerRef.current = null;
+    window.speechSynthesis?.cancel();
+    setIsListening(false);
+    setIsSpeaking(false);
+    setIsThinking(false);
+  }, [isOpen]);
+
+  useEffect(() => () => {
+    recognitionRef.current?.abort();
+    requestControllerRef.current?.abort();
+    window.speechSynthesis?.cancel();
+  }, []);
 
   const speakText = (text: string) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
@@ -86,9 +110,23 @@ export const VoiceTutorModal: React.FC<VoiceTutorModalProps> = ({ isOpen, onClos
     }
   };
 
-  const startRecognition = () => {
+  const startRecognition = async () => {
     if (!SpeechRecognitionAPI) {
       setSpeechError('not-supported');
+      return;
+    }
+
+    if (isThinking) return;
+
+    // Ask for microphone access first so permission/device errors are reported
+    // clearly instead of being presented as a generic recognition failure.
+    try {
+      if (navigator.mediaDevices?.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    } catch {
+      setSpeechError('no-mic');
       return;
     }
 
@@ -123,8 +161,11 @@ export const VoiceTutorModal: React.FC<VoiceTutorModalProps> = ({ isOpen, onClos
     };
 
     recognition.onerror = (event: any) => {
-      if (event.error === 'not-allowed') setMicGranted(false);
-      setSpeechError('network');
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        setSpeechError('no-mic');
+      } else if (event.error === 'network') {
+        setSpeechError('network');
+      }
       setIsListening(false);
     };
 
@@ -134,17 +175,21 @@ export const VoiceTutorModal: React.FC<VoiceTutorModalProps> = ({ isOpen, onClos
 
   const handleSendVoiceQuery = async (customText?: string) => {
     const textToSend = (customText || transcript).trim();
-    if (!textToSend) return;
+    if (!textToSend || isThinking) return;
 
     setVoiceHistory((prev) => [...prev, { sender: 'user', text: textToSend, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
     setTranscript('');
     finalTranscriptRef.current = '';
     setIsThinking(true);
+    requestControllerRef.current?.abort();
+    const controller = new AbortController();
+    requestControllerRef.current = controller;
 
     try {
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           message: textToSend,
           language: language === 'ur' ? 'Urdu' : 'English',
@@ -167,7 +212,8 @@ export const VoiceTutorModal: React.FC<VoiceTutorModalProps> = ({ isOpen, onClos
 
       setVoiceHistory((prev) => [...prev, { sender: 'ai', text: aiReply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
       speakText(aiReply);
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.name === 'AbortError') return;
       console.error('Voice AI Query Error:', err);
       const fallback = language === 'ur'
         ? 'یہ ایک اہم تصور ہے۔ قدرتی نظام توازن کی طرف بڑھتے ہیں۔'
@@ -175,7 +221,10 @@ export const VoiceTutorModal: React.FC<VoiceTutorModalProps> = ({ isOpen, onClos
       setVoiceHistory((prev) => [...prev, { sender: 'ai', text: fallback, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
       speakText(fallback);
     } finally {
-      setIsThinking(false);
+      if (requestControllerRef.current === controller) {
+        requestControllerRef.current = null;
+        setIsThinking(false);
+      }
     }
   };
 
@@ -266,10 +315,13 @@ export const VoiceTutorModal: React.FC<VoiceTutorModalProps> = ({ isOpen, onClos
             <div className="mt-6 flex items-center gap-4">
               <button
                 onClick={toggleListening}
+                disabled={isThinking}
                 className={`w-16 h-16 rounded-3xl flex items-center justify-center text-white transition-all transform hover:scale-105 active:scale-95 shadow-lg ${
                   isListening
                     ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/40 ring-4 ring-rose-500/20 animate-pulse'
-                    : 'bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/30 ring-4 ring-emerald-500/20'
+                    : isThinking
+                      ? 'bg-slate-700 cursor-not-allowed shadow-none'
+                      : 'bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/30 ring-4 ring-emerald-500/20'
                 }`}
               >
                 {isListening ? <MicOff className="w-7 h-7" /> : <Mic className="w-7 h-7" />}
@@ -285,6 +337,19 @@ export const VoiceTutorModal: React.FC<VoiceTutorModalProps> = ({ isOpen, onClos
                 </button>
               )}
             </div>
+
+            {speechError && (
+              <div className="mt-4 max-w-md w-full flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+                {speechError === 'network' ? <WifiOff className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
+                <span>
+                  {speechError === 'not-supported'
+                    ? 'Voice recognition is not supported in this browser. You can still use the quick prompts.'
+                    : speechError === 'no-mic'
+                      ? 'Microphone access was not granted or no microphone is available. Check your browser permissions and try again.'
+                      : 'Speech recognition could not reach its service. Check your internet connection and try again.'}
+                </span>
+              </div>
+            )}
 
             {/* Live Transcript / Input preview */}
             <AnimatePresence>

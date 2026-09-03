@@ -14,12 +14,42 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
+import { randomBytes } from 'crypto';
 
 dotenv.config();
 
 const app = express();
 const PORT = 3000;
 const DB_FILE = path.join(process.cwd(), 'db.json');
+
+app.set('trust proxy', 1);
+app.disable('x-powered-by');
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), geolocation=(), microphone=(self)');
+  next();
+});
+
+const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>();
+app.use('/api', (req, res, next) => {
+  const now = Date.now();
+  const isAiRequest = req.path.startsWith('/ai/') || req.path.includes('/stream') || req.path.includes('/generate');
+  const maxRequests = isAiRequest ? 20 : 240;
+  const key = `${req.ip}:${isAiRequest ? 'ai' : 'api'}`;
+  const bucket = rateLimitBuckets.get(key);
+  if (!bucket || bucket.resetAt <= now) {
+    rateLimitBuckets.set(key, { count: 1, resetAt: now + 60_000 });
+    return next();
+  }
+  bucket.count += 1;
+  if (bucket.count > maxRequests) {
+    res.setHeader('Retry-After', Math.ceil((bucket.resetAt - now) / 1000));
+    return res.status(429).json({ error: 'Too many requests. Please try again shortly.' });
+  }
+  next();
+});
 
 import firebaseConfig from './firebase-applet-config.json';
 
@@ -101,11 +131,11 @@ app.use((req, res, next) => {
   }
   next();
 });
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.get('/api/firebase-status', async (req, res) => {
+app.get('/api/firebase-status', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
     const docRef = firestoreDb.collection('app').doc('database');
     const docSnap = await docRef.get();
@@ -287,7 +317,13 @@ function getDb() {
   // Database Migration to ensure Classrooms contain description, status, students, and createdAt
   let changed = false;
 
-  if (!db.users) {
+  if (!db.users && process.env.DEMO_MODE !== 'true') {
+    db.users = [];
+    changed = true;
+  }
+  if (!db.users && process.env.DEMO_MODE === 'true') {
+    // Demo users are deliberately opt-in. Production deployments must provision
+    // accounts through an administrator or an identity provider.
     db.users = [
       {
         id: 'usr_admin',
@@ -521,8 +557,26 @@ function getGeminiClient(): GoogleGenAI {
 }
 
 // JWT Configuration and Middlewares
-const JWT_SECRET = process.env.JWT_SECRET || 'class-copilot-pakistan-jwt-access-secret-2026';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'class-copilot-pakistan-jwt-refresh-secret-2026';
+function getJwtSecret(name: 'JWT_SECRET' | 'JWT_REFRESH_SECRET') {
+  const configured = process.env[name];
+  if (configured && configured.length >= 32) return configured;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(`${name} must be configured with a value of at least 32 characters in production.`);
+  }
+  // Development sessions intentionally reset on server restart when no secret is supplied.
+  return randomBytes(48).toString('hex');
+}
+
+const JWT_SECRET = getJwtSecret('JWT_SECRET');
+const JWT_REFRESH_SECRET = getJwtSecret('JWT_REFRESH_SECRET');
+const usesCrossSiteCookies = process.env.CROSS_SITE_COOKIES === 'true';
+const cookieOptions = (maxAge?: number) => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production' || usesCrossSiteCookies,
+  sameSite: (usesCrossSiteCookies ? 'none' : 'lax') as 'none' | 'lax',
+  path: '/',
+  ...(maxAge ? { maxAge } : {}),
+});
 
 function generateAccessToken(payload: any, rememberMe: boolean) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: rememberMe ? '7d' : '15m' });
@@ -555,6 +609,21 @@ export function requireRole(roles: string[]) {
   };
 }
 
+function requireAuthenticatedApi(req: any, res: any, next: any) {
+  authenticateToken(req, res, () => {
+    const path = req.path as string;
+    const teacherOnly = path.startsWith('/teacher/') || path.startsWith('/ai-workspace/');
+    const classroomWrite = path.startsWith('/classrooms/') &&
+      !path.endsWith('/join') && !path.endsWith('/leave') && req.method !== 'GET';
+    const quizAuthoring = path.startsWith('/quizzes') &&
+      !path.startsWith('/quizzes/attempts') && !path.startsWith('/quizzes/recommendations') && req.method !== 'GET';
+    if ((teacherOnly || classroomWrite || quizAuthoring) && !['teacher', 'admin'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Forbidden: This action requires a teacher or administrator account.' });
+    }
+    next();
+  });
+}
+
 // AUTH API ENDPOINTS
 
 // Register
@@ -573,9 +642,11 @@ app.post('/api/auth/register', (req, res) => {
 
     const emailLower = email.toLowerCase().trim();
 
-    // Validate role
-    const validRoles = ['student', 'teacher', 'admin'];
-    const userRole = validRoles.includes(role) ? role : 'student';
+    // Public sign-up must never mint an administrator. Teacher self-registration
+    // is opt-in for controlled pilot deployments only.
+    const userRole = role === 'teacher' && process.env.ALLOW_PUBLIC_TEACHER_REGISTRATION === 'true'
+      ? 'teacher'
+      : 'student';
 
     const existingUser = db.users.find((u: any) => u.email.toLowerCase() === emailLower);
     if (existingUser) {
@@ -583,8 +654,8 @@ app.post('/api/auth/register', (req, res) => {
       const payload = { id: existingUser.id, email: existingUser.email, role: existingUser.role, name: existingUser.name, studentId: existingUser.studentId };
       const accessToken = generateAccessToken(payload, rememberMe);
       const refreshToken = generateRefreshToken(payload, rememberMe);
-      res.cookie('accessToken', accessToken, { httpOnly: true, secure: true, sameSite: 'none', maxAge: rememberMe ? 7 * 24 * 3600 * 1000 : 15 * 60 * 1000 });
-      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: 'none', maxAge: rememberMe ? 30 * 24 * 3600 * 1000 : 7 * 24 * 3600 * 1000 });
+      res.cookie('accessToken', accessToken, cookieOptions(rememberMe ? 7 * 24 * 3600 * 1000 : 15 * 60 * 1000));
+      res.cookie('refreshToken', refreshToken, cookieOptions(rememberMe ? 30 * 24 * 3600 * 1000 : 7 * 24 * 3600 * 1000));
       return res.json({
         success: true,
         user: { id: existingUser.id, email: existingUser.email, role: existingUser.role, name: existingUser.name, studentId: existingUser.studentId }
@@ -619,14 +690,8 @@ app.post('/api/auth/register', (req, res) => {
     const accessToken = generateAccessToken(payload, rememberMe);
     const refreshToken = generateRefreshToken(payload, rememberMe);
 
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true, secure: true, sameSite: 'none',
-      maxAge: rememberMe ? 7 * 24 * 3600 * 1000 : 15 * 60 * 1000
-    });
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true, secure: true, sameSite: 'none',
-      maxAge: rememberMe ? 30 * 24 * 3600 * 1000 : 7 * 24 * 3600 * 1000
-    });
+    res.cookie('accessToken', accessToken, cookieOptions(rememberMe ? 7 * 24 * 3600 * 1000 : 15 * 60 * 1000));
+    res.cookie('refreshToken', refreshToken, cookieOptions(rememberMe ? 30 * 24 * 3600 * 1000 : 7 * 24 * 3600 * 1000));
 
     return res.json({
       success: true,
@@ -659,19 +724,8 @@ app.post('/api/auth/login', (req, res) => {
     const accessToken = generateAccessToken(payload, rememberMe);
     const refreshToken = generateRefreshToken(payload, rememberMe);
 
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: rememberMe ? 7 * 24 * 3600 * 1000 : 15 * 60 * 1000
-    });
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: rememberMe ? 30 * 24 * 3600 * 1000 : 7 * 24 * 3600 * 1000
-    });
+    res.cookie('accessToken', accessToken, cookieOptions(rememberMe ? 7 * 24 * 3600 * 1000 : 15 * 60 * 1000));
+    res.cookie('refreshToken', refreshToken, cookieOptions(rememberMe ? 30 * 24 * 3600 * 1000 : 7 * 24 * 3600 * 1000));
 
     res.json({
       success: true,
@@ -699,12 +753,7 @@ app.post('/api/auth/refresh', (req, res) => {
       const payload = { id: decoded.id, email: decoded.email, role: decoded.role, name: decoded.name, studentId: decoded.studentId };
       const newAccessToken = generateAccessToken(payload, true); // extend access
 
-      res.cookie('accessToken', newAccessToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 7 * 24 * 3600 * 1000 // extension
-      });
+      res.cookie('accessToken', newAccessToken, cookieOptions(7 * 24 * 3600 * 1000));
 
       res.json({ success: true, accessToken: newAccessToken });
     });
@@ -716,8 +765,8 @@ app.post('/api/auth/refresh', (req, res) => {
 
 // Logout
 app.post('/api/auth/logout', (req, res) => {
-  res.clearCookie('accessToken', { httpOnly: true, secure: true, sameSite: 'none' });
-  res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'none' });
+  res.clearCookie('accessToken', cookieOptions());
+  res.clearCookie('refreshToken', cookieOptions());
   res.json({ success: true, message: 'Logged out successfully.' });
 });
 
@@ -735,7 +784,7 @@ app.post('/api/auth/forgot-password', (req, res) => {
     const user = db.users.find((u: any) => u.email.toLowerCase() === emailLower);
 
     // Standard practice: Don't reveal if user exists for security, but return resetToken for UI convenience
-    const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const resetToken = randomBytes(32).toString('hex');
     
     if (user) {
       user.resetPasswordToken = resetToken;
@@ -744,11 +793,14 @@ app.post('/api/auth/forgot-password', (req, res) => {
       console.log(`[AUTH] Password reset link for ${email}: http://localhost:3000/reset-password?token=${resetToken}`);
     }
 
-    res.json({
+    const response: Record<string, unknown> = {
       success: true,
       message: 'If a matching account exists, password reset instructions have been generated.',
-      resetToken // Return resetToken so that the web app simulator can easily reset
-    });
+    };
+    // A reset token is delivered by email in production. Keeping it available in
+    // development preserves the local demo flow without leaking it publicly.
+    if (process.env.NODE_ENV !== 'production') response.resetToken = resetToken;
+    res.json(response);
   } catch (error: any) {
     console.error('Forgot password error:', error);
     res.status(500).json({ error: 'Internal server error.' });
@@ -803,6 +855,9 @@ app.get('/api/auth/me', (req, res) => {
 });
 
 // API Routes
+// Everything registered below this point is private by default. Route-specific
+// checks in `requireAuthenticatedApi` additionally protect teacher operations.
+app.use('/api', requireAuthenticatedApi);
 
 // Stats endpoint
 app.get('/api/teacher/stats', authenticateToken, (req, res) => {
@@ -2171,7 +2226,7 @@ app.post('/api/classrooms/:id/join', (req, res) => {
   try {
     const db = getDb();
     const { id } = req.params;
-    const { name, email } = req.body;
+    const { name, email } = req.user;
 
     if (!email) {
       return res.status(400).json({ error: 'Student Email is required.' });
@@ -2242,7 +2297,7 @@ app.post('/api/classrooms/:id/leave', (req, res) => {
   try {
     const db = getDb();
     const { id } = req.params;
-    const { email } = req.body;
+    const { email } = req.user;
 
     if (!email) {
       return res.status(400).json({ error: 'Student Email is required.' });
@@ -2290,7 +2345,7 @@ app.post('/api/classrooms/:id/leave', (req, res) => {
 app.get('/api/conversations', (req, res) => {
   try {
     const db = getDb();
-    res.json(db.conversations || []);
+    res.json((db.conversations || []).filter((conversation: any) => conversation.userId === req.user.id));
   } catch (error: any) {
     res.status(500).json({ error: error.message || 'Failed to fetch conversations' });
   }
@@ -2305,6 +2360,7 @@ app.post('/api/conversations', (req, res) => {
     const id = `conv_${Math.random().toString(36).substr(2, 9)}`;
     const newConversation = {
       id,
+      userId: req.user.id,
       title: title || 'New Conversation',
       createdAt: new Date().toISOString(),
       messages: [
@@ -2338,7 +2394,7 @@ app.put('/api/conversations/:id', (req, res) => {
       return res.status(400).json({ error: 'Title is required' });
     }
 
-    const index = db.conversations.findIndex((c: any) => c.id === id);
+    const index = db.conversations.findIndex((c: any) => c.id === id && c.userId === req.user.id);
     if (index === -1) {
       return res.status(404).json({ error: 'Conversation not found' });
     }
@@ -2358,7 +2414,7 @@ app.delete('/api/conversations/:id', (req, res) => {
     const db = getDb();
     const { id } = req.params;
 
-    const index = db.conversations.findIndex((c: any) => c.id === id);
+    const index = db.conversations.findIndex((c: any) => c.id === id && c.userId === req.user.id);
     if (index === -1) {
       return res.status(404).json({ error: 'Conversation not found' });
     }
@@ -2384,7 +2440,7 @@ app.post('/api/conversations/:id/stream', async (req, res) => {
   try {
     // Write user message to DB immediately
     const db = getDb();
-    const index = db.conversations.findIndex((c: any) => c.id === id);
+    const index = db.conversations.findIndex((c: any) => c.id === id && c.userId === req.user.id);
     if (index === -1) {
       return res.status(404).json({ error: 'Conversation not found' });
     }
@@ -2426,7 +2482,7 @@ app.post('/api/conversations/:id/stream', async (req, res) => {
     // Persist bot message to DB
     if (botResponseText) {
       const freshDb = getDb();
-      const freshIndex = freshDb.conversations.findIndex((c: any) => c.id === id);
+      const freshIndex = freshDb.conversations.findIndex((c: any) => c.id === id && c.userId === req.user.id);
       if (freshIndex !== -1) {
         const botMsg = {
           id: `msg_${Math.random().toString(36).substr(2, 9)}`,
@@ -2457,7 +2513,10 @@ app.post('/api/conversations/:id/stream', async (req, res) => {
 app.get('/api/support/tickets', (req, res) => {
   try {
     const db = getDb();
-    res.json(db.tickets || []);
+    const tickets = db.tickets || [];
+    res.json(['teacher', 'admin'].includes(req.user.role)
+      ? tickets
+      : tickets.filter((ticket: any) => ticket.email === req.user.email));
   } catch (error: any) {
     res.status(500).json({ error: error.message || 'Failed to fetch tickets' });
   }
@@ -2467,7 +2526,8 @@ app.get('/api/support/tickets', (req, res) => {
 app.post('/api/support/tickets', (req, res) => {
   try {
     const db = getDb();
-    const { name, email, subject, category, message, role } = req.body;
+    const { subject, category, message } = req.body;
+    const { name, email, role } = req.user;
 
     if (!name || !email || !subject || !message) {
       return res.status(400).json({ error: 'Name, email, subject, and message are required' });
@@ -2501,6 +2561,12 @@ app.post('/api/support/tickets', (req, res) => {
 app.post('/api/ai/solve-vision', async (req, res) => {
   try {
     const { imageData, problemText, language = 'English' } = req.body;
+    if (typeof problemText !== 'undefined' && (typeof problemText !== 'string' || problemText.length > 8_000)) {
+      return res.status(400).json({ error: 'Problem text must be a string no longer than 8,000 characters.' });
+    }
+    if (typeof imageData !== 'undefined' && (typeof imageData !== 'string' || imageData.length > 1_500_000)) {
+      return res.status(413).json({ error: 'Image payload is too large. Please upload an image smaller than 1 MB.' });
+    }
     const ai = getGeminiClient();
 
     const promptText = `You are an elite multimodal AI academic tutor in FuturoVerse specializing in Physics, Mathematics, Chemistry, and Engineering.
@@ -2611,6 +2677,12 @@ Problem notes/context: "${problemText || 'Solve the problem in the image'}"`;
 app.post('/api/ai/chat', async (req, res) => {
   try {
     const { message, language = 'English', systemPrompt } = req.body;
+    if (typeof message !== 'string' || !message.trim() || message.length > 4_000) {
+      return res.status(400).json({ error: 'Message must be between 1 and 4,000 characters.' });
+    }
+    if (typeof systemPrompt !== 'undefined' && (typeof systemPrompt !== 'string' || systemPrompt.length > 2_000)) {
+      return res.status(400).json({ error: 'System prompt must be a string no longer than 2,000 characters.' });
+    }
     const ai = getGeminiClient();
 
     const response = await ai.models.generateContent({

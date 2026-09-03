@@ -74,6 +74,12 @@ const progressTrendData = [
   { name: 'Week 5', avgScore: 76.5, progress: 85 },
 ];
 
+const demoTourSteps = [
+  { title: 'Start with a real lecture', description: 'Upload a PDF, presentation, or video. FuturoVerse extracts learning context for the AI workspace.', action: 'Open materials' },
+  { title: 'Generate a bilingual assessment', description: 'Choose the source, difficulty, and language. Gemini produces ready-to-review questions and explanations.', action: 'Generate quiz' },
+  { title: 'Close the learning loop', description: 'Show student practice, then return to the gradebook to discuss outcomes and intervention.', action: 'Open quiz experience' },
+];
+
 export const Dashboard: React.FC = () => {
   const { 
     locale, 
@@ -114,6 +120,8 @@ export const Dashboard: React.FC = () => {
   // State managers
   const [loadingStats, setLoadingStats] = useState(false);
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+  const [isDemoTourOpen, setIsDemoTourOpen] = useState(false);
+  const [demoTourStep, setDemoTourStep] = useState(0);
   
   // Materials list state
   const [materialsData, setMaterialsData] = useState<any[]>([]);
@@ -172,6 +180,7 @@ export const Dashboard: React.FC = () => {
   });
   const [generatingQuizStatus, setGeneratingQuizStatus] = useState<string | null>(null); // 'idle' | 'generating' | 'done' | 'error'
   const [generatedQuiz, setGeneratedQuiz] = useState<any | null>(null);
+  const [quizGenerationError, setQuizGenerationError] = useState<string | null>(null);
 
   // Notification Alerts toast feedback
   const [feedbackToast, setFeedbackToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -305,6 +314,7 @@ export const Dashboard: React.FC = () => {
   const handleGenerateQuizSubmit = async () => {
     setGeneratingQuizStatus('generating');
     setGeneratedQuiz(null);
+    setQuizGenerationError(null);
     try {
       const quiz = await generateQuiz(quizConfig);
       setGeneratedQuiz(quiz);
@@ -313,7 +323,9 @@ export const Dashboard: React.FC = () => {
     } catch (err: any) {
       console.error(err);
       setGeneratingQuizStatus('error');
-      showToast(err.message || 'AI generation failed. Please configure GEMINI_API_KEY.', 'error');
+      const message = err.message || 'AI generation could not be completed. Please try again.';
+      setQuizGenerationError(message);
+      showToast(message, 'error');
     }
   };
 
@@ -1209,8 +1221,8 @@ export const Dashboard: React.FC = () => {
         <div className="relative z-10 flex flex-wrap items-center gap-3 shrink-0">
           {currentRole === 'admin' ? (
             <>
-              <Button 
-                variant="outlined" 
+              <Button
+                variant="outlined"
                 size="sm"
                 onClick={() => setActiveTab('analytics')}
                 className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white hover:text-white border-transparent shadow-md"
@@ -1228,20 +1240,26 @@ export const Dashboard: React.FC = () => {
               </Button>
             </>
           ) : (
-            <Button 
-              variant="outlined" 
-              size="sm"
-              onClick={() => {
-                if (classes && classes.length > 0) {
-                  setNewLessonForm(prev => ({ ...prev, subject: classes[0].name }));
-                }
-                setIsScheduleOpen(true);
-              }}
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white hover:text-white border-transparent shadow-md dark:bg-emerald-700 dark:hover:bg-emerald-800"
-            >
-              <CalendarIcon className="w-4 h-4 text-white" />
-              <span className="text-white">Schedule Session</span>
-            </Button>
+            <>
+              <Button variant="outlined" size="sm" onClick={() => { setDemoTourStep(0); setIsDemoTourOpen(true); }} className="flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white hover:text-white border-white/30 shadow-md">
+                <Sparkles className="w-4 h-4 text-white" />
+                <span className="text-white">2-Min Demo Tour</span>
+              </Button>
+              <Button
+                variant="outlined"
+                size="sm"
+                onClick={() => {
+                  if (classes && classes.length > 0) {
+                    setNewLessonForm(prev => ({ ...prev, subject: classes[0].name }));
+                  }
+                  setIsScheduleOpen(true);
+                }}
+                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white hover:text-white border-transparent shadow-md dark:bg-emerald-700 dark:hover:bg-emerald-800"
+              >
+                <CalendarIcon className="w-4 h-4 text-white" />
+                <span className="text-white">Schedule Session</span>
+              </Button>
+            </>
           )}
 
           <Button 
@@ -1260,6 +1278,43 @@ export const Dashboard: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {currentRole === 'teacher' && (
+        <Card className="overflow-hidden border border-emerald-300/70 dark:border-emerald-800/70 bg-gradient-to-r from-emerald-50 via-white to-indigo-50 dark:from-emerald-950/30 dark:via-slate-900 dark:to-indigo-950/20">
+          <div className="p-5 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+              <div>
+                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
+                  <Sparkles className="w-4 h-4" />
+                  <span className="text-[11px] font-black uppercase tracking-widest">Judge demo flow</span>
+                </div>
+                <h3 className="mt-1 text-lg font-bold text-slate-900 dark:text-white">From lecture to measurable learning in four steps</h3>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Use this sequence to demonstrate FuturoVerse in under two minutes.</p>
+              </div>
+              <Button variant="primary" size="sm" onClick={() => setIsQuizGenOpen(true)} className="shrink-0 bg-emerald-600 hover:bg-emerald-700">
+                Start the AI demo <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {[
+                { step: '01', title: 'Upload lecture', detail: 'Add a PDF, slide deck, or video.', icon: FileText, action: () => document.getElementById('materials-workspace')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) },
+                { step: '02', title: 'Generate quiz', detail: 'Gemini creates bilingual questions.', icon: Sparkles, action: () => setIsQuizGenOpen(true) },
+                { step: '03', title: 'Student practice', detail: 'Open the live quiz and battle arena.', icon: Swords, action: () => setActiveTab('quizzes') },
+                { step: '04', title: 'Review outcomes', detail: 'Use gradebook to spot learners who need help.', icon: TrendingUp, action: () => setActiveTab('gradebook') },
+              ].map(({ step, title, detail, icon: Icon, action }) => (
+                <button key={step} type="button" onClick={action} className="group rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white/80 dark:bg-slate-900/70 p-4 text-left transition hover:-translate-y-0.5 hover:border-emerald-400 hover:shadow-md">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center"><Icon className="w-4 h-4" /></div>
+                    <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400">{step}</span>
+                  </div>
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-100">{title}</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">{detail}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* 1. Statistics Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -1566,7 +1621,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* 4. Interactive Class Calendar and Scheduler */}
-      <Card className="p-6">
+      <Card id="materials-workspace" className="p-6">
         <div className="flex flex-col md:flex-row gap-6">
           
           {/* Left Column: Calendar Sheet */}
@@ -2108,7 +2163,7 @@ export const Dashboard: React.FC = () => {
       {/* 4. AI BILINGUAL QUIZ GENERATOR PORTAL */}
       <Dialog
         isOpen={isQuizGenOpen}
-        onClose={() => { setIsQuizGenOpen(false); setGeneratingQuizStatus(null); setGeneratedQuiz(null); }}
+        onClose={() => { setIsQuizGenOpen(false); setGeneratingQuizStatus(null); setGeneratedQuiz(null); setQuizGenerationError(null); }}
         title="AI Bilingual Quiz Generator"
         size="xl"
       >
@@ -2203,7 +2258,7 @@ export const Dashboard: React.FC = () => {
             <Spinner size="lg" variant="primary" />
             <div>
               <h5 className="font-bold text-sm text-slate-800 dark:text-slate-100 animate-pulse">Running Gemini Reasoning...</h5>
-              <p className="text-xs text-slate-400 mt-1 max-w-sm">Generating bilingual question structures, options, and localized answers. This takes about 5 seconds.</p>
+              <p className="text-xs text-slate-400 mt-1 max-w-sm">Generating bilingual question structures, options, and localized answers. Please keep this window open while your quiz is prepared.</p>
             </div>
           </div>
         )}
@@ -2214,12 +2269,13 @@ export const Dashboard: React.FC = () => {
               <Trash2 className="w-8 h-8" />
             </div>
             <div>
-              <h5 className="font-bold text-sm text-slate-800 dark:text-slate-100">AI Generation Blocked</h5>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 max-w-md">The Gemini SDK require a valid API Key. To execute active test generation, configure your GEMINI_API_KEY in the Settings &gt; Secrets tab on the platform menu.</p>
+              <h5 className="font-bold text-sm text-slate-800 dark:text-slate-100">Quiz generation needs attention</h5>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 max-w-md">{quizGenerationError || 'The AI service did not return a quiz. Check your connection and try again; your selected material and settings are still saved.'}</p>
             </div>
             <div className="flex gap-2.5 pt-4">
               <Button variant="secondary" onClick={() => setGeneratingQuizStatus(null)}>Configure Parameters</Button>
-              <Button variant="primary" onClick={() => setIsQuizGenOpen(false)}>Close Portal</Button>
+              <Button variant="primary" onClick={handleGenerateQuizSubmit}>Try Again</Button>
+              <Button variant="primary" onClick={() => { setIsQuizGenOpen(false); setGeneratingQuizStatus(null); setQuizGenerationError(null); }}>Close Portal</Button>
             </div>
           </div>
         )}
@@ -2228,10 +2284,16 @@ export const Dashboard: React.FC = () => {
           <div className="space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
-                <span className="text-[10px] uppercase font-bold text-blue-500 tracking-wider">Bilingual Quiz Preview</span>
+                <span className="text-[10px] uppercase font-bold text-blue-500 tracking-wider">AI quiz ready for review</span>
                 <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 mt-0.5">{generatedQuiz.title}</h4>
               </div>
-              <Badge variant="success">Bilingual PDF ready</Badge>
+              <Badge variant="success">{generatedQuiz.questions?.length || 0} questions generated</Badge>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-100 dark:border-slate-800 p-3">
+              <div><p className="text-[10px] uppercase font-bold text-slate-400">Source</p><p className="mt-0.5 text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">{quizConfig.materialId ? 'Lecture material' : 'Custom topic'}</p></div>
+              <div><p className="text-[10px] uppercase font-bold text-slate-400">Level</p><p className="mt-0.5 text-xs font-semibold text-slate-700 dark:text-slate-200 capitalize">{quizConfig.difficulty}</p></div>
+              <div><p className="text-[10px] uppercase font-bold text-slate-400">Language</p><p className="mt-0.5 text-xs font-semibold text-slate-700 dark:text-slate-200 capitalize">{quizConfig.language}</p></div>
             </div>
 
             {/* Questions list */}
@@ -2293,10 +2355,38 @@ export const Dashboard: React.FC = () => {
 
             <div className="flex justify-end gap-2.5 pt-4 border-t border-slate-100 dark:border-slate-800">
               <Button variant="secondary" onClick={() => setGeneratingQuizStatus(null)}>Configure Another</Button>
-              <Button variant="primary" onClick={() => setIsQuizGenOpen(false)}>Save & Sync To Students</Button>
+              <Button variant="primary" onClick={() => { setIsQuizGenOpen(false); setGeneratingQuizStatus(null); setActiveTab('quizzes'); }}>Open Student Quiz Experience <ArrowRight className="w-4 h-4 ml-1" /></Button>
             </div>
           </div>
         )}
+      </Dialog>
+
+      <Dialog isOpen={isDemoTourOpen} onClose={() => setIsDemoTourOpen(false)} title="FuturoVerse: 2-Minute Judge Demo" size="md">
+        <div className="space-y-6">
+          <div className="flex gap-2" aria-label={`Step ${demoTourStep + 1} of ${demoTourSteps.length}`}>
+            {demoTourSteps.map((step, index) => (
+              <div key={step.title} className={`h-1.5 flex-1 rounded-full ${index <= demoTourStep ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
+            ))}
+          </div>
+          <div className="rounded-2xl border border-emerald-100 dark:border-emerald-900/50 bg-emerald-50/60 dark:bg-emerald-950/20 p-5">
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Step {demoTourStep + 1} of {demoTourSteps.length}</span>
+            <h4 className="mt-2 text-lg font-bold text-slate-900 dark:text-white">{demoTourSteps[demoTourStep].title}</h4>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">{demoTourSteps[demoTourStep].description}</p>
+          </div>
+          <div className="flex flex-wrap justify-between gap-3">
+            <Button variant="secondary" onClick={() => demoTourStep === 0 ? setIsDemoTourOpen(false) : setDemoTourStep((step) => step - 1)}>{demoTourStep === 0 ? 'Close' : 'Back'}</Button>
+            <div className="flex gap-2">
+              <Button variant="outlined" onClick={() => {
+                if (demoTourStep === 0) document.getElementById('materials-workspace')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (demoTourStep === 1) setIsQuizGenOpen(true);
+                if (demoTourStep === 2) setActiveTab('quizzes');
+                setIsDemoTourOpen(false);
+              }}>{demoTourSteps[demoTourStep].action}</Button>
+              {demoTourStep < demoTourSteps.length - 1 && <Button variant="primary" onClick={() => setDemoTourStep((step) => step + 1)}>Next <ArrowRight className="w-4 h-4 ml-1" /></Button>}
+              {demoTourStep === demoTourSteps.length - 1 && <Button variant="primary" onClick={() => setIsDemoTourOpen(false)}>Finish</Button>}
+            </div>
+          </div>
+        </div>
       </Dialog>
 
       {/* Voice Learning Companion Modal */}

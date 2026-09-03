@@ -6,3 +6,13 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Credentials and deployment secrets (never commit)
+*.pem
+*.key
+*.p12
+*.pfx
+serviceAccountKey.json
+firebase-service-account*.json
+secrets/
+.npmrc

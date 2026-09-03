@@ -71,6 +71,7 @@ interface AuthPageProps {
 }
 
 export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBackToLanding }: AuthPageProps) {
+  const isDemoMode = (import.meta as any).env?.VITE_DEMO_MODE === 'true';
   const [view, setView] = useState<'login' | 'register' | 'forgot' | 'reset'>(initialView);
   const [selectedRole, setSelectedRole] = useState<'teacher' | 'student' | 'admin'>(
     initialRole === 'admin' ? 'admin' : initialRole === 'student' ? 'student' : 'teacher'
@@ -131,18 +132,19 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
     registerForm.setValue('role', selectedRole);
   }, [selectedRole, registerForm]);
 
-  // Set default demo values on initial load or role switch if form is empty
+  // Competition demo accounts are created only when DEMO_MODE is enabled on the
+  // server. These buttons fill the form; they never bypass real authentication.
   const applyDemoCredentialsForRole = (role: 'teacher' | 'student' | 'admin') => {
     setSelectedRole(role);
     if (role === 'teacher') {
       loginForm.setValue('email', 'teacher@example.com');
-      loginForm.setValue('password', 'teacher123');
+      loginForm.setValue('password', 'Password123!');
     } else if (role === 'student') {
       loginForm.setValue('email', 'student@example.com');
-      loginForm.setValue('password', 'student123');
+      loginForm.setValue('password', 'Password123!');
     } else if (role === 'admin') {
       loginForm.setValue('email', 'admin@example.com');
-      loginForm.setValue('password', 'admin123');
+      loginForm.setValue('password', 'Password123!');
     }
   };
 
@@ -371,7 +373,7 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
               exit={{ opacity: 0, x: 10 }}
             >
               {/* Role Selection & Quick Demo Switcher */}
-              <div className="mb-5 space-y-2">
+              {isDemoMode && <div className="mb-5 space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <label className="font-bold text-slate-300 flex items-center gap-1.5">
                     <span>Choose Entry Role:</span>
@@ -442,7 +444,7 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
                     {selectedRole === 'admin' && 'Access campus-wide analytics, all classrooms, user admin, and complete audit gradebooks.'}
                   </span>
                 </div>
-              </div>
+              </div>}
 
               <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
                 {/* Email */}

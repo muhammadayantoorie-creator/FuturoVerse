@@ -152,11 +152,15 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 # Server Configuration
 PORT=3000
-JWT_SECRET=your_super_secret_jwt_key_here
+JWT_SECRET=generate_a_unique_32_plus_character_access_secret
+JWT_REFRESH_SECRET=generate_a_unique_32_plus_character_refresh_secret
 
-# Firebase (Optional / Pre-configured in firebase-applet-config.json)
-FIREBASE_PROJECT_ID=your_project_id
+# Optional: enable only for a short-lived competition demo
+DEMO_MODE=true
+VITE_DEMO_MODE=true
 ```
+
+Never commit `.env`, service-account JSON files, private keys, or Gemini/JWT secrets. Configure those through your deployment provider's secret settings.
 
 ### Running the Development Server
 
@@ -177,6 +181,26 @@ npm run build
 # Start the production server
 npm start
 ```
+
+### Competition Demo Setup
+
+For a short-lived judge demo, set `DEMO_MODE=true` and `VITE_DEMO_MODE=true` in the deployment environment, then use one of these demo accounts:
+
+| Role | Email | Password |
+|---|---|---|
+| Teacher | `teacher@example.com` | `Password123!` |
+| Student | `student@example.com` | `Password123!` |
+| Administrator | `admin@example.com` | `Password123!` |
+
+Turn both flags off after the competition. Demo accounts are deliberately opt-in and should not be enabled for a normal production deployment.
+
+### Two-Minute Judge Walkthrough
+
+1. Sign in as **Teacher** and choose **2-Min Demo Tour** on the dashboard.
+2. Upload or select a lecture resource, then choose **Generate Quiz** to create a bilingual assessment.
+3. Open **Quizzes** to demonstrate student practice or the Battle Arena.
+4. Open **Gradebook** to show the feedback and learning-outcome view.
+5. Finish with **AI Tools**: voice tutor, vision solver, and concept mind maps.
 
 ---
 
