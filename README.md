@@ -25,6 +25,7 @@
 ## 📖 Table of Contents
 
 - [Overview](#-overview)
+- [Project Status & Security](#-project-status--security)
 - [Key Features](#-key-features)
   - [🤖 Intelligent AI Learning Suite](#-intelligent-ai-learning-suite)
   - [📝 Interactive Quiz & Assessment Engine](#-interactive-quiz--assessment-engine)
@@ -48,9 +49,17 @@
 
 ## 🌟 Overview
 
-**FuturoVerse** is a modern educational platform engineered to bridge pedagogical needs with cutting-edge artificial intelligence. Built specifically with localized curriculum support in mind, it provides seamless multilingual capability (English and Urdu), dynamic AI-assisted study tools, real-time analytics, automated quiz generation, and enterprise-grade role-based access.
+**FuturoVerse** is a competition-ready, full-stack educational platform that connects course material, generative AI, assessment, and learning insights. Built with localized curriculum support in mind, it provides English/Urdu learning tools, AI-assisted study support, automated quiz generation, and role-aware experiences for students, teachers, and administrators.
 
 Whether you are a **Student** seeking interactive study guides and instant AI tutoring, a **Teacher** crafting automated quizzes and tracking class performance, or an **Administrator** analyzing institution-wide telemetry, FuturoVerse delivers a frictionless, hyper-modern experience.
+
+---
+
+## Project Status & Security
+
+FuturoVerse is designed as a secure hackathon prototype and competition demo—not as a completed enterprise deployment. The current implementation includes protected API sessions, role checks for teacher/admin actions, Firestore client-access restrictions, request-size validation, and rate limits for AI-heavy routes.
+
+For a production launch, replace the prototype aggregate data store with normalized collections, add managed identity/SSO, audit logging, monitoring, automated tests, backups, and a formal security review.
 
 ---
 
@@ -86,7 +95,8 @@ Powered by Google Gemini 2.5 Models via `@google/genai`:
 
 ### 🛡️ Role-Based Access Control (RBAC)
 - **Role Scopes**: Tailored navigation and protected screens for **Student**, **Teacher**, **Administrator**, and **Guest**.
-- **Secure Authentication**: JWT session handling, hashed passwords (`bcryptjs`), and Firestore / JSON dual-mode data persistence.
+- **Protected API Sessions**: HttpOnly JWT cookies, backend-authoritative sessions, password hashing (`bcryptjs`), and protected teacher/admin routes.
+- **Guardrails**: Firestore browser writes are restricted; AI routes apply request-size validation and rate limits.
 
 ---
 
