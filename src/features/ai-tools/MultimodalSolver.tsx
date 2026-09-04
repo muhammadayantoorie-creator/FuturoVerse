@@ -87,12 +87,11 @@ export const MultimodalSolver: React.FC = () => {
         const result = await res.json();
         setSolution(result);
       } else {
-        // High quality simulated structured result for rich presentation
-        simulateDetailedSolution();
+        throw new Error('The AI vision service could not process this request.');
       }
     } catch (err) {
       console.error('Vision Solver error:', err);
-      simulateDetailedSolution();
+      setSolution(null);
     } finally {
       setIsSolving(false);
     }
@@ -164,8 +163,8 @@ export const MultimodalSolver: React.FC = () => {
           </p>
         </div>
 
-        {/* 1-Click Presentation Samples */}
-        <div className="mt-6 pt-4 border-t border-slate-800">
+        {/* Optional samples are disabled in production so results always come from user input. */}
+        {false && <div className="mt-6 pt-4 border-t border-slate-800">
           <p className="text-xs text-slate-400 font-semibold mb-3 flex items-center gap-1.5">
             <Zap className="w-3.5 h-3.5 text-amber-400" /> 1-Click Demo Samples for Presentation:
           </p>
@@ -190,7 +189,7 @@ export const MultimodalSolver: React.FC = () => {
               </button>
             ))}
           </div>
-        </div>
+        </div>}
       </div>
 
       {/* Input Workspace */}

@@ -128,10 +128,10 @@ async function loadDbFromFirestore() {
       cachedDb = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
       console.log('Database loaded successfully from local file db.json.');
     } catch (fileErr) {
-      cachedDb = initialDb;
+      cachedDb = emptyDb;
     }
   } else {
-    cachedDb = initialDb;
+    cachedDb = emptyDb;
   }
 }
 
@@ -188,7 +188,18 @@ app.get('/api/firebase-status', authenticateToken, requireRole(['admin']), async
   }
 });
 
-// Initialize Database with realistic Pakistani curriculum data
+// Clean installation state. All records are created by authenticated users;
+// the application deliberately ships without sample learners or analytics.
+const emptyDb = {
+  stats: { activeStudents: 0, quizzesGenerated: 0, avgClassScore: 0, totalMaterials: 0 },
+  users: [] as any[], classes: [] as any[], materials: [] as any[], students: [] as any[],
+  notifications: [] as any[], lessons: [] as any[], quizzes: [] as any[], quizAttempts: [] as any[],
+  workspaceItems: [] as any[], weakTopics: [] as any[], tickets: [] as any[], gradebook: [] as any[],
+  conversations: [] as any[],
+  analytics: { attendance: [], studentGrowth: [], completionRates: [], weakTopics: [], studentAnalytics: [] },
+};
+
+// Legacy fixture. It is not used at runtime; new instances always use emptyDb.
 const initialDb = {
   stats: {
     activeStudents: 1248,
@@ -318,7 +329,7 @@ function getDb() {
   let db = cachedDb;
   if (!db) {
     if (!fs.existsSync(DB_FILE)) {
-      db = initialDb;
+      db = emptyDb;
       try {
         fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
       } catch (err) {
@@ -330,7 +341,7 @@ function getDb() {
         db = JSON.parse(data);
       } catch (err) {
         console.error('Failed to read db file, using initial memory state', err);
-        db = initialDb;
+        db = emptyDb;
       }
     }
     cachedDb = db;
@@ -339,44 +350,12 @@ function getDb() {
   // Database Migration to ensure Classrooms contain description, status, students, and createdAt
   let changed = false;
 
-  if (!db.users && process.env.DEMO_MODE !== 'true') {
+  if (!db.users) {
     db.users = [];
     changed = true;
   }
-  if (!db.users && process.env.DEMO_MODE === 'true') {
-    // Demo users are deliberately opt-in. Production deployments must provision
-    // accounts through an administrator or an identity provider.
-    db.users = [
-      {
-        id: 'usr_admin',
-        email: 'admin@example.com',
-        password: bcrypt.hashSync('Password123!', 10),
-        name: 'Admin Coordinator',
-        role: 'admin',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'usr_teacher',
-        email: 'teacher@example.com',
-        password: bcrypt.hashSync('Password123!', 10),
-        name: 'Faculty Instructor',
-        role: 'teacher',
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'usr_student',
-        email: 'student@example.com',
-        password: bcrypt.hashSync('Password123!', 10),
-        name: 'Muhammad Ali',
-        role: 'student',
-        studentId: 'std_001',
-        createdAt: new Date().toISOString()
-      }
-    ];
-    changed = true;
-  }
   if (!db.classes) {
-    db.classes = initialDb.classes;
+    db.classes = [];
     changed = true;
   }
   db.classes = db.classes.map((cls: any) => {

@@ -39,10 +39,9 @@ import { Role } from '@/src/types';
 
 interface LandingPageProps {
   onNavigateToAuth: (initialView?: 'login' | 'register', role?: Role) => void;
-  onExploreDemo: (role?: Role) => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth, onExploreDemo }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) => {
   const { locale, setLocale, theme, toggleTheme } = useAppStore();
   const isRtl = locale === 'ur';
 
@@ -233,7 +232,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth, onEx
               </button>
 
               <button
-                onClick={() => onExploreDemo('teacher')}
+                onClick={() => onNavigateToAuth('login', 'teacher')}
                 className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-500 text-slate-800 dark:text-slate-100 font-bold text-base shadow-md flex items-center justify-center gap-2.5 transition-all cursor-pointer"
               >
                 <Play className="w-4 h-4 text-emerald-500 fill-emerald-500" />

@@ -71,7 +71,7 @@ interface AuthPageProps {
 }
 
 export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBackToLanding }: AuthPageProps) {
-  const isDemoMode = (import.meta as any).env?.VITE_DEMO_MODE === 'true';
+  const isDemoMode = false;
   const [view, setView] = useState<'login' | 'register' | 'forgot' | 'reset'>(initialView);
   const [selectedRole, setSelectedRole] = useState<'teacher' | 'student' | 'admin'>(
     initialRole === 'admin' ? 'admin' : initialRole === 'student' ? 'student' : 'teacher'
@@ -164,10 +164,10 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
       return 'Google sign-in window was closed before completion. Please try again.';
     }
     if (code === 'auth/unauthorized-domain') {
-      return 'This domain is not in your Firebase authorized domains list. Please sign in with Email & Password or use the 1-Click Demo.';
+      return 'This domain is not in your Firebase authorized domains list. Please sign in with Email & Password.';
     }
     if (code === 'auth/operation-not-allowed' || err?.message?.includes('operation-not-allowed')) {
-      return 'Email & Password sign-in is disabled in your Firebase console. Please enable it in Firebase Authentication > Sign-in method, or use the 1-Click Demo.';
+      return 'Email & Password sign-in is disabled in your Firebase console. Please enable it in Firebase Authentication > Sign-in method.';
     }
     if (code === 'auth/invalid-email') return 'Invalid email address format.';
     if (code === 'auth/user-not-found') return 'No account found with this email.';

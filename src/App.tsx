@@ -111,27 +111,6 @@ function AppContent() {
     setViewState('auth');
   };
 
-  const handleExploreDemo = (role: Role = 'teacher') => {
-    const mockUsers: Record<Role, { id: string; name: string; email: string; role: Role }> = {
-      teacher: { id: 'demo-teacher', name: 'Demo Professor', email: 'teacher@institution.edu.pk', role: 'teacher' },
-      student: { id: 'demo-student', name: 'Demo Student', email: 'student@institution.edu.pk', role: 'student' },
-      admin: { id: 'demo-admin', name: 'Demo Administrator', email: 'admin@institution.edu.pk', role: 'admin' },
-      guest: { id: 'demo-guest', name: 'Guest Observer', email: 'guest@example.com', role: 'guest' },
-    };
-
-    const demoUser = mockUsers[role] || mockUsers.teacher;
-    queryClient.setQueryData(['currentUser'], demoUser);
-    setRole(role);
-    useAppStore.setState({
-      currentUser: {
-        ...demoUser,
-        avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC1jpDL0T17Nug1I73cKFaluo__r7LzQwxx6PsTUeiM0PfB0KlnSyBK5Gry5_OqPHSu2XUeiLHD0Pdgl8c-FK1Nh3ekz_yu2JDPjldCEwf2xom-BnUr3BRfYFoOKs-KxtJsF9Sn0_bmZZ3xkm_zpTa7yzbvyGvm8KxE63XBzDRXTGUNIFpriJG7TBj5SU4ituE492UPv8YljJ3pdhsSM98_2YKFMEOD68dkMEuppByzzUSEjWiE1ImHHA',
-      },
-      currentRole: role,
-    });
-    setViewState('app');
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center font-sans" role="status" aria-label="Loading application">
@@ -147,7 +126,7 @@ function AppContent() {
   if (viewState === 'landing' && !user) {
     return (
       <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center"><PageLoader /></div>}>
-        <LandingPage onNavigateToAuth={handleNavigateToAuth} onExploreDemo={handleExploreDemo} />
+        <LandingPage onNavigateToAuth={handleNavigateToAuth} />
       </Suspense>
     );
   }
@@ -173,7 +152,7 @@ function AppContent() {
           </button>
         </div>
         <Suspense fallback={<PageLoader />}>
-          <LandingPage onNavigateToAuth={handleNavigateToAuth} onExploreDemo={handleExploreDemo} />
+          <LandingPage onNavigateToAuth={handleNavigateToAuth} />
         </Suspense>
       </div>
     );
