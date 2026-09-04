@@ -165,12 +165,18 @@ PORT=3000
 JWT_SECRET=generate_a_unique_32_plus_character_access_secret
 JWT_REFRESH_SECRET=generate_a_unique_32_plus_character_refresh_secret
 
+# Required for Firebase email/password and Google sign-in to create a secure
+# backend session. Paste the full service-account JSON as one environment value.
+FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account", "project_id":"your-project-id"}'
+
 # Optional: enable only for a short-lived competition demo
 DEMO_MODE=true
 VITE_DEMO_MODE=true
 ```
 
 Never commit `.env`, service-account JSON files, private keys, or Gemini/JWT secrets. Configure those through your deployment provider's secret settings.
+
+For Google sign-in, also enable **Google** in Firebase Authentication and add your deployed domain to Firebase's Authorized domains. The app verifies the Firebase ID token on the server before issuing its HTTP-only session cookies.
 
 ### Running the Development Server
 

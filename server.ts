@@ -59,10 +59,20 @@ if (firebaseConfig.firestoreDatabaseId) {
 }
 
 let firestoreDb: any;
+let firebaseCredential: any;
+
+if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+  try {
+    firebaseCredential = admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON));
+  } catch {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON must contain valid service-account JSON.');
+  }
+}
 
 try {
   const adminApp = admin.initializeApp({
     projectId: firebaseConfig.projectId,
+    ...(firebaseCredential ? { credential: firebaseCredential } : {}),
   });
   console.log('Firebase Admin SDK initialized successfully.');
   firestoreDb = firebaseConfig.firestoreDatabaseId
@@ -716,7 +726,7 @@ app.post('/api/auth/login', (req, res) => {
     const emailLower = email.toLowerCase();
     const user = db.users.find((u: any) => u.email.toLowerCase() === emailLower);
 
-    if (!user || !bcrypt.compareSync(password, user.password)) {
+    if (!user || !user.password || !bcrypt.compareSync(password, user.password)) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
@@ -734,6 +744,51 @@ app.post('/api/auth/login', (req, res) => {
   } catch (error: any) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error during login.' });
+  }
+});
+
+// Exchange a verified Firebase identity for this application's httpOnly JWT
+// session. This keeps the browser identity provider and protected API in sync.
+app.post('/api/auth/firebase', async (req, res) => {
+  try {
+    const { idToken, requestedRole = 'student', name: requestedName, rememberMe = false } = req.body;
+    if (typeof idToken !== 'string' || !idToken) {
+      return res.status(400).json({ error: 'A Firebase identity token is required.' });
+    }
+
+    const decoded = await admin.auth().verifyIdToken(idToken, true);
+    const email = decoded.email?.toLowerCase().trim();
+    if (!email) return res.status(400).json({ error: 'The identity provider did not return an email address.' });
+
+    const db = getDb();
+    let user = db.users.find((candidate: any) => candidate.email?.toLowerCase() === email);
+    if (!user) {
+      const role = requestedRole === 'teacher' && process.env.ALLOW_PUBLIC_TEACHER_REGISTRATION === 'true'
+        ? 'teacher'
+        : 'student';
+      user = {
+        id: decoded.uid,
+        email,
+        name: typeof requestedName === 'string' && requestedName.trim()
+          ? requestedName.trim().slice(0, 100)
+          : decoded.name || email.split('@')[0],
+        role,
+        provider: 'firebase',
+        createdAt: new Date().toISOString(),
+      };
+      db.users.push(user);
+      saveDb(db);
+    }
+
+    const payload = { id: user.id, email: user.email, role: user.role, name: user.name, studentId: user.studentId };
+    const accessToken = generateAccessToken(payload, rememberMe);
+    const refreshToken = generateRefreshToken(payload, rememberMe);
+    res.cookie('accessToken', accessToken, cookieOptions(rememberMe ? 7 * 24 * 3600 * 1000 : 15 * 60 * 1000));
+    res.cookie('refreshToken', refreshToken, cookieOptions(rememberMe ? 30 * 24 * 3600 * 1000 : 7 * 24 * 3600 * 1000));
+    res.json({ success: true, user: payload });
+  } catch (error: any) {
+    console.error('Firebase session exchange failed:', error);
+    res.status(401).json({ error: 'Firebase sign-in could not be verified by the server.' });
   }
 });
 

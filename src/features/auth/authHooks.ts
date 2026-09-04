@@ -4,14 +4,10 @@ import {
   createUserWithEmailAndPassword, 
   signOut, 
   sendPasswordResetEmail,
-  onAuthStateChanged,
   GoogleAuthProvider,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult
+  signInWithPopup
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '@/src/lib/firebase';
+import { auth } from '@/src/lib/firebase';
 
 export interface UserProfile {
   id: string;
@@ -19,6 +15,23 @@ export interface UserProfile {
   name: string;
   role: 'admin' | 'teacher' | 'student';
   studentId?: string;
+}
+
+async function exchangeFirebaseSession(
+  idToken: string,
+  requestedRole: UserProfile['role'],
+  rememberMe = false,
+  name?: string,
+): Promise<UserProfile> {
+  const response = await fetch('/api/auth/firebase', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ idToken, requestedRole, rememberMe, name }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || 'Firebase sign-in could not be verified by the server.');
+  return payload.user as UserProfile;
 }
 
 export function useCurrentUserQuery() {
@@ -45,28 +58,26 @@ export function useLoginMutation() {
   return useMutation({
     mutationFn: async (credentials: { email: string; password: string; rememberMe?: boolean }) => {
       const emailClean = credentials.email.trim().toLowerCase();
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          email: emailClean,
-          password: credentials.password,
-          rememberMe: credentials.rememberMe ?? false,
-        }),
-      });
-      if (!res.ok) {
-        const error = await res.json().catch(() => ({}));
-        throw new Error(error.error || 'Unable to sign in. Please verify your credentials and try again.');
+      let userProfile: UserProfile;
+      try {
+        const credential = await signInWithEmailAndPassword(auth, emailClean, credentials.password);
+        userProfile = await exchangeFirebaseSession(await credential.user.getIdToken(), 'student', credentials.rememberMe);
+      } catch (firebaseError) {
+        // Existing demo/local accounts use the server password store. Keep this
+        // fallback so they remain usable when Firebase Auth is unavailable.
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email: emailClean, password: credentials.password, rememberMe: credentials.rememberMe ?? false }),
+        });
+        if (!res.ok) {
+          const error = await res.json().catch(() => ({}));
+          throw new Error(error.error || 'Unable to sign in. Please verify your credentials and try again.');
+        }
+        const data = await res.json();
+        userProfile = data.user as UserProfile;
       }
-      const data = await res.json();
-      const userProfile: UserProfile = {
-        id: data.user.id,
-        email: data.user.email,
-        name: data.user.name,
-        role: data.user.role,
-        studentId: data.user.studentId,
-      };
       localStorage.setItem('auth_user', JSON.stringify(userProfile));
       return { user: userProfile };
     },
@@ -84,61 +95,39 @@ export function useRegisterMutation() {
       const nameTrimmed = userData.name.trim();
       let userProfile: UserProfile | null = null;
 
-      // 1. Attempt Firebase Auth registration
+      // Firebase is the identity provider. The server verifies the ID token and
+      // creates the authoritative application session and role record.
       try {
+        let credential;
         try {
-          const userCredential = await createUserWithEmailAndPassword(auth, emailClean, userData.password);
-          const fbUser = userCredential.user;
-
-          // Save profile to Firestore (best-effort / non-blocking)
-          try {
-            await setDoc(doc(db, 'users', fbUser.uid), {
-              name: nameTrimmed,
-              email: emailClean,
-              role: userData.role || 'student',
-              createdAt: new Date().toISOString(),
-            });
-          } catch (fsErr) {
-            console.warn('Firestore profile write notice (non-fatal):', fsErr);
-          }
-
-          userProfile = {
-            id: fbUser.uid,
-            email: emailClean,
-            name: nameTrimmed,
-            role: userData.role || 'student',
-          };
+          credential = await createUserWithEmailAndPassword(auth, emailClean, userData.password);
         } catch (fbErr: any) {
-          // If already registered in Firebase, attempt sign-in
           if (fbErr?.code === 'auth/email-already-in-use') {
-            try {
-              const credential = await signInWithEmailAndPassword(auth, emailClean, userData.password);
-              const fbUser = credential.user;
-              userProfile = {
-                id: fbUser.uid,
-                email: emailClean,
-                name: nameTrimmed,
-                role: userData.role || 'student',
-              };
-            } catch {
-              // Ignore sign-in failure, will fall through to backend API
-            }
+            credential = await signInWithEmailAndPassword(auth, emailClean, userData.password);
           } else if (fbErr?.code === 'auth/weak-password') {
             throw new Error('Password is too weak. Please use at least 6 characters.');
           } else if (fbErr?.code === 'auth/invalid-email') {
             throw new Error('Invalid email address format.');
           } else {
-            console.warn('Firebase registration notice (falling back to backend auth API):', fbErr?.code || fbErr?.message);
+            throw fbErr;
           }
         }
+
+        userProfile = await exchangeFirebaseSession(
+          await credential.user.getIdToken(),
+          userData.role || 'student',
+          userData.rememberMe,
+          nameTrimmed,
+        );
       } catch (err: any) {
-        if (err.message.includes('Password is too weak') || err.message.includes('Invalid email address')) {
+        if (err?.message?.includes('Password is too weak') || err?.message?.includes('Invalid email address')) {
           throw err;
         }
+        console.warn('Firebase registration/session exchange failed; trying the local server fallback:', err?.code || err?.message);
       }
 
-      // 2. Register/Sync with Backend Session API
-      try {
+      // The local server fallback keeps demo and offline-development accounts usable.
+      if (!userProfile) try {
         const res = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -271,12 +260,6 @@ export function useGoogleLoginMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (role: 'student' | 'teacher' | 'admin' = 'student') => {
-      // Google login needs a server-side Firebase-token verification endpoint
-      // before it can establish the httpOnly API session used by this app.
-      // Keep it off unless that integration is explicitly enabled.
-      if ((import.meta as any).env?.VITE_ENABLE_GOOGLE_AUTH !== 'true') {
-        throw new Error('Google sign-in is not enabled for this deployment. Use email and password to continue.');
-      }
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
 
@@ -289,12 +272,7 @@ export function useGoogleLoginMutation() {
         console.warn('Google popup auth notice:', popupErr?.code || popupErr?.message);
 
         if (popupErr?.code === 'auth/popup-blocked') {
-          try {
-            await signInWithRedirect(auth, provider);
-            return { user: null, redirected: true };
-          } catch (redirectErr) {
-            console.warn('Redirect auth also blocked, applying fallback:', redirectErr);
-          }
+          throw new Error('Google sign-in was blocked by the browser. Allow pop-ups for this site and try again.');
         }
 
         // Never create a local role when identity-provider authentication fails.
@@ -316,34 +294,7 @@ export function useGoogleLoginMutation() {
         throw new Error('Google Sign-in did not complete.');
       }
 
-      const userDocRef = doc(db, 'users', fbUser.uid);
-      let finalRole = role;
-      let name = fbUser.displayName || (role === 'teacher' ? 'Prof. Ahmed Raza' : role === 'admin' ? 'Dr. Tariq Khan' : 'Ali Hassan');
-
-      try {
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          finalRole = data.role || role;
-          name = data.name || name;
-        } else {
-          await setDoc(userDocRef, {
-            name,
-            email: fbUser.email || '',
-            role,
-            createdAt: new Date().toISOString(),
-          });
-        }
-      } catch (fsErr) {
-        console.warn('Firestore doc write warning on google login:', fsErr);
-      }
-
-      const userProfile: UserProfile = {
-        id: fbUser.uid,
-        email: fbUser.email || '',
-        name,
-        role: finalRole,
-      };
+      const userProfile = await exchangeFirebaseSession(await fbUser.getIdToken(), role);
 
       localStorage.setItem('auth_user', JSON.stringify(userProfile));
       return { user: userProfile, redirected: false };
