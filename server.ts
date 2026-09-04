@@ -60,6 +60,9 @@ if (firebaseConfig.firestoreDatabaseId) {
 
 let firestoreDb: any;
 let firebaseCredential: any;
+const hasFirestoreCredentials = Boolean(
+  process.env.GOOGLE_APPLICATION_CREDENTIALS || process.env.FIREBASE_SERVICE_ACCOUNT_JSON,
+);
 
 if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
   try {
@@ -104,7 +107,7 @@ let cachedDb: any = null;
 
 async function loadDbFromFirestore() {
   try {
-    if (firestoreDb && process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    if (firestoreDb && hasFirestoreCredentials) {
       const docRef = firestoreDb.collection('app').doc('database');
       const docSnap = await docRef.get().catch((err: any) => {
         console.warn('Firestore read error:', err?.message || err);
@@ -130,6 +133,15 @@ async function loadDbFromFirestore() {
   } else {
     cachedDb = initialDb;
   }
+}
+
+// Both the local Express server and the Vercel function await the same
+// initialization promise. This prevents a cold Vercel instance from serving
+// requests before its Firestore-backed state has been loaded.
+let databaseInitialization: Promise<void> | null = null;
+export function initializeDatabase() {
+  if (!databaseInitialization) databaseInitialization = loadDbFromFirestore();
+  return databaseInitialization;
 }
 
 app.use((req, res, next) => {
@@ -535,7 +547,7 @@ function saveDb(data: any) {
   }
   // Sync to Firestore in the background if credentials exist
   try {
-    if (firestoreDb && process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    if (firestoreDb && hasFirestoreCredentials) {
       const sanitized = removeUndefined(data);
       firestoreDb.collection('app').doc('database').set(sanitized).catch((err: any) => {
         console.warn('Database background sync to Firestore is in fallback mode. Local db.json successfully updated.', err?.message || err);
@@ -2762,7 +2774,7 @@ app.post('/api/ai/chat', async (req, res) => {
 
 // Vite middleware for dev or production static serving
 async function startServer() {
-  await loadDbFromFirestore();
+  await initializeDatabase();
 
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
@@ -2783,10 +2795,13 @@ async function startServer() {
   });
 }
 
-// Export app for Vercel serverless functions
-export { app };
-
-// Only start the HTTP server when NOT running in Vercel serverless environment
-if (!process.env.VERCEL) {
-  startServer();
+// Vercel imports the Express app from api/index.ts. Local development and a
+// standalone production process start the HTTP listener here instead.
+if (process.env.VERCEL !== '1') {
+  startServer().catch((error) => {
+    console.error('Server startup failed:', error);
+    process.exit(1);
+  });
 }
+
+export { app };

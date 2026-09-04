@@ -3,9 +3,10 @@
  * Wraps the main Express app for Vercel deployment.
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { app } from '../server';
+import { app, initializeDatabase } from '../server';
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  await initializeDatabase();
   let pathUrl = req.url || '/';
 
   // 1. If path is query-forwarded via vercel rewrite ($1)
