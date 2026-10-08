@@ -108,7 +108,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
               className="h-12 w-auto object-contain rounded-xl shadow-md shadow-emerald-500/10"
             />
             <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-300/40 hidden sm:inline-flex">
-              Pakistan 🇵🇰
+              Global 🌍
             </span>
           </div>
 
@@ -187,8 +187,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
               <Sparkles className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
               <span>
                 {isRtl 
-                  ? 'پاکستانی تعلیمی اداروں کے لیے سر فہرست بائلنگول اے آئی پلیٹ فارم' 
-                  : 'Tailored for Pakistani Schools, Colleges & Universities'}
+                  ? 'ہر اسکول، کالج اور یونیورسٹی کے لیے اے آئی پلیٹ فارم' 
+                  : 'Built for Schools, Colleges & Universities Worldwide'}
               </span>
             </div>
 
@@ -204,9 +204,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
                 </>
               ) : (
                 <>
-                  Empowering Pakistani Classrooms with{' '}
+                  Empowering Every Classroom with{' '}
                   <span className="bg-gradient-to-r from-emerald-600 via-teal-500 to-blue-600 bg-clip-text text-transparent">
-                    Bilingual AI Intelligence
+                    Multilingual AI Intelligence
                   </span>
                 </>
               )}
@@ -215,9 +215,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
             {/* Subtitle */}
             <p className="text-base sm:text-lg lg:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
               {isRtl ? (
-                'اساتذہ کے لیے خودکار کوئز جنریٹر اور نصاب سمری، طلباء کے لیے 24/7 اے آئی ٹیوٹر، اور ایڈمنسٹریشن کے لیے شفاف تعلیمی تجزیات — تمام فیڈرل اور صوبائی بورڈز کے مطابق۔'
+                'اساتذہ کے لیے خودکار کوئز جنریٹر اور نصاب سمری، طلباء کے لیے 24/7 اے آئی ٹیوٹر، اور ایڈمنسٹریشن کے لیے شفاف تعلیمی تجزیات۔'
               ) : (
-                'Automated bilingual quiz generation for Teachers, 24/7 AI-powered study assistance for Students, and institution-wide analytics for Administrators — aligned with FBISE, HEC, and Provincial Boards.'
+                'Automated multilingual quiz generation for Teachers, 24/7 AI-powered study assistance for Students, and institution-wide analytics for Administrators — globally adaptable to any curriculum.'
               )}
             </p>
 
@@ -295,7 +295,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
                   45+
                 </span>
                 <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  {isRtl ? 'کیمپس اور کالجز' : 'Pakistani Campuses Onboarded'}
+                  {isRtl ? 'کیمپس اور کالجز' : 'Institutions Onboarded'}
                 </span>
               </div>
               <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm text-center">
@@ -620,12 +620,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
             {isRtl ? 'جدید تکنیکی خصوصیات' : 'Core Capabilities'}
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white mt-2">
-            {isRtl ? 'پاکستانی تعلیم کے لیے مکمل اسمارٹ انفراسٹرکچر' : 'Built from the Ground Up for Pakistan'}
+            {isRtl ? 'ہر تعلیمی ادارے کے لیے مکمل اسمارٹ انفراسٹرکچر' : 'Built for Modern Educational Institutions Worldwide'}
           </h2>
           <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-3">
             {isRtl 
               ? 'مقامی ضروریات اور بین الاقوامی معیارات کا امتزاج جو تدریسی عمل کو آسان اور موثر بناتا ہے۔' 
-              : 'Combining Gemini AI with localized educational curricula to modernize how lectures, assessments, and gradebooks function.'}
+              : 'Combining Gemini AI with multilingual curriculum support to modernize how lectures, assessments, and gradebooks function.'}
           </p>
         </div>
 
@@ -803,7 +803,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
               </div>
               <div>
                 <h4 className="text-xs font-bold text-slate-900 dark:text-white">Zainab Fatima</h4>
-                <p className="text-[11px] text-slate-400">Pre-Medical Student, FBISE Board</p>
+                <p className="text-[11px] text-slate-400">Pre-Medical Student, Year 12</p>
               </div>
             </div>
           </div>
@@ -825,7 +825,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
               </div>
               <div>
                 <h4 className="text-xs font-bold text-slate-900 dark:text-white">Dean Tariq Mehmood</h4>
-                <p className="text-[11px] text-slate-400">Academic Dean, Punjab College System</p>
+                <p className="text-[11px] text-slate-400">Academic Dean, International College System</p>
               </div>
             </div>
           </div>
@@ -921,7 +921,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
                 <p className="text-xs text-slate-400 mt-1">Perfect to explore &amp; test the platform</p>
               </div>
               <div className="flex items-end gap-1">
-                <span className="text-5xl font-black text-slate-900 dark:text-white">Rs 0</span>
+                <span className="text-5xl font-black text-slate-900 dark:text-white">$0</span>
                 <span className="text-slate-400 text-sm mb-1.5">/forever</span>
               </div>
               <div className="space-y-2.5">
@@ -967,10 +967,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
                 <p className="text-xs text-emerald-100 mt-1">For individual teachers &amp; tutors</p>
               </div>
               <div className="flex items-end gap-1">
-                <span className="text-5xl font-black">Rs 1,499</span>
+                <span className="text-5xl font-black">$19</span>
                 <span className="text-emerald-200 text-sm mb-1.5">/month</span>
               </div>
-              <div className="text-xs text-emerald-200 -mt-4">Rs 14,990/year — save 2 months free</div>
+              <div className="text-xs text-emerald-200 -mt-4">$190/year — save 2 months free</div>
               <div className="space-y-2.5">
                 {[
                   'Unlimited AI quiz & material generation',
@@ -1017,7 +1017,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
                   'Everything in Pro (all teachers)',
                   'Admin dashboard with full control',
                   'Multi-campus & department management',
-                  'FBISE / HEC board curriculum templates',
+                  'Custom national curriculum templates',
                   'Dedicated onboarding & training session',
                   'Custom AI model fine-tuning on syllabus',
                   'SLA-backed uptime guarantee',
@@ -1084,8 +1084,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
             {[
               { icon: ShieldCheck, text: 'No credit card for free trial' },
               { icon: Lock, text: 'Cancel Pro anytime, no penalty' },
-              { icon: Award, text: 'FBISE & HEC compliant platform' },
-              { icon: Globe, text: 'Bilingual Urdu + English content' },
+              { icon: Award, text: 'Globally adaptable curriculum platform' },
+              { icon: Globe, text: 'Multilingual content support' },
             ].map(({ icon: Icon, text }, i) => (
               <div key={i} className="flex items-center gap-2">
                 <Icon className="w-4 h-4 text-emerald-500" />
@@ -1154,22 +1154,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
             <div className="lg:col-span-2 space-y-5">
               <img src="/logo.jpg" alt="FuturoVerse Logo" className="h-14 w-auto object-contain rounded-xl" />
               <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs">
-                Pakistan's first bilingual AI-powered smart classroom platform — empowering teachers, students, and institutions with next-generation learning tools in Urdu & English.
+                A global multilingual AI-powered smart classroom platform — empowering teachers, students, and institutions with next-generation learning tools in any language.
               </p>
 
               {/* Contact Info */}
               <div className="space-y-2 text-xs">
                 <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400">
                   <Mail className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  <span>support@futuroverse.pk</span>
+                  <span>support@futuroverse.io</span>
                 </div>
                 <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400">
                   <Globe className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  <span>www.futuroverse.pk</span>
+                  <span>www.futuroverse.io</span>
                 </div>
                 <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400">
                   <School className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  <span>Lahore, Punjab, Pakistan 🇵🇰</span>
+                  <span>Available Worldwide 🌍</span>
                 </div>
               </div>
 
@@ -1223,8 +1223,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
                   { label: 'For Admins', href: '#solutions' },
                   { label: 'For Schools', href: '#pricing' },
                   { label: 'For Universities', href: '#pricing' },
-                  { label: 'FBISE Aligned', href: '#curriculum' },
-                  { label: 'HEC Compliant', href: '#curriculum' },
+                  { label: 'Curriculum Adaptable', href: '#curriculum' },
+                  { label: 'Global Standards', href: '#curriculum' },
                 ].map(({ label, href }) => (
                   <li key={label}>
                     <a href={href} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
@@ -1276,10 +1276,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
           {/* Trust badges row */}
           <div className="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-5">
             {[
-              { icon: ShieldCheck, title: 'FBISE Aligned', sub: 'Federal Board curriculum compliant' },
-              { icon: Award, title: 'HEC Approved', sub: 'University-grade standard content' },
+              { icon: ShieldCheck, title: 'Curriculum Adaptable', sub: 'Works with any national curriculum' },
+              { icon: Award, title: 'Globally Certified', sub: 'University-grade standard content' },
               { icon: Lock, title: 'Data Secure', sub: 'End-to-end encrypted & private' },
-              { icon: Globe, title: 'Bilingual Platform', sub: 'Full Urdu + English support' },
+              { icon: Globe, title: 'Multilingual Platform', sub: 'Supports multiple languages' },
             ].map(({ icon: Icon, title, sub }) => (
               <div key={title} className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
@@ -1296,7 +1296,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
           {/* Bottom legal row */}
           <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px]">
             <p className="text-slate-400 dark:text-slate-500 text-center sm:text-left">
-              © {new Date().getFullYear()} <span className="font-bold text-slate-600 dark:text-slate-300">FuturoVerse Pakistan</span>. All rights reserved. · FBISE & HEC Compliant · Made with ❤️ in Pakistan
+              © {new Date().getFullYear()} <span className="font-bold text-slate-600 dark:text-slate-300">FuturoVerse</span>. All rights reserved. · Globally Adaptable Curriculum · Made with ❤️ for Educators Worldwide
             </p>
             <div className="flex items-center gap-4 text-slate-400 dark:text-slate-500 font-semibold">
               <a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Privacy</a>

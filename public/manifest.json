@@ -1,13 +1,13 @@
 {
   "name": "FuturoVerse - AI Smart Classroom",
   "short_name": "FuturoVerse",
-  "description": "Bilingual AI-powered smart classroom & curriculum platform for Pakistani education",
+  "description": "Multilingual AI-powered smart classroom & curriculum platform for educators worldwide",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#051b18",
   "theme_color": "#0d9488",
   "orientation": "portrait-primary",
-  "lang": "en-PK",
+  "lang": "en",
   "categories": ["education", "productivity"],
   "icons": [
     {

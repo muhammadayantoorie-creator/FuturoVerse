@@ -278,7 +278,7 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
           ) : <div />}
 
           <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
-            Pakistan 🇵🇰
+            Global 🌍
           </span>
         </div>
 
@@ -288,7 +288,7 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
             <Sparkles className="w-6 h-6" />
           </div>
           <h1 className="text-2xl font-black text-white tracking-tight">
-            FuturoVerse Pakistan
+            FuturoVerse
           </h1>
           <p className="text-xs text-slate-400 mt-1">
             Bilingual Smart Classroom & Curriculum Platform
@@ -639,7 +639,7 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
                     <input
                       id="register-email"
                       type="email"
-                      placeholder="yourname@institution.edu.pk"
+                      placeholder="yourname@institution.edu"
                       {...registerForm.register('email')}
                       className="w-full bg-slate-900/50 border border-slate-700/60 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-colors"
                     />
