@@ -572,20 +572,36 @@ export const QuizEngine: React.FC = () => {
     setIsLoadingCoach(true);
     setAiCoachReport('');
 
-    // Extract weak topics
-    const weakTopics = [
-      { topic: 'Quantum Wavefunctions', score: 38 },
-      { topic: 'Limits & Continuous Functions', score: 55 }
-    ];
-    const scoresSummary = attempts.map(att => ({ quiz: att.quizTitle, score: `${att.score}/${att.totalPoints}`, percentage: `${Math.round((att.score / att.totalPoints)*100)}%` }));
+    const studentName = currentUser?.name || 'Student';
+    const realWeakTopics = attempts.length > 0
+      ? attempts
+          .filter(a => (a.score / (a.totalPoints || 1)) < 0.6)
+          .map(a => ({ topic: a.quizTitle, score: Math.round((a.score / (a.totalPoints || 1)) * 100) }))
+      : [];
+    const scoresSummary = attempts.map(att => ({
+      quiz: att.quizTitle,
+      score: `${att.score}/${att.totalPoints}`,
+      percentage: `${Math.round((att.score / (att.totalPoints || 1)) * 100)}%`
+    }));
+
+    if (attempts.length === 0) {
+      setAiCoachReport(`### 📋 AI Study Coach
+
+No quiz attempts recorded yet for **${studentName}**.
+
+Complete an assessment from the quiz catalog to generate personalized, AI-driven study recommendations and focus areas.`);
+      setIsLoadingCoach(false);
+      return;
+    }
 
     try {
       const res = await fetch('/api/quizzes/recommendations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
-          studentName: 'Muhammad Ali',
-          weakTopics,
+          studentName,
+          weakTopics: realWeakTopics,
           scores: scoresSummary
         })
       });
@@ -594,24 +610,15 @@ export const QuizEngine: React.FC = () => {
         const data = await res.json();
         setAiCoachReport(data.recommendation);
       } else {
-        throw new Error('Fallback to static analysis');
+        throw new Error('Analysis service unreachable');
       }
     } catch (err) {
-      setAiCoachReport(`### 🌟 Study Plan & AI Recommendations for **Muhammad Ali**
+      setAiCoachReport(`### 🌟 Study Plan for **${studentName}**
 
-*Keep pushing forward! Here is your tailored roadmap to success:*
+*Review your recent quiz results to target areas for improvement:*
 
-#### 📚 High Priority Weak Topics:
-1. **Quantum Wavefunctions** (Recent Score: 38%):
-   - **Active Recall**: Explain the Schrödinger wave equation to an imaginary classmate without looking at your slides.
-   - **Visual Maps**: Graph the Probability Density $|\Psi|^2$ for a particle in a 1D box. Pay attention to nodes!
-2. **Limits & Continuity** (Recent Score: 55%):
-   - Practice the Intermediate Value Theorem with past Punjab or Federal board questions.
-   - Focus on graphical discontinuities (removable, infinite, jump).
-
-#### 💡 General Exam Strategies:
-- Solve at least 3 previous board exam questions under timed conditions.
-- Leverage the **AI Tutor** tab for instant bilingual translations and complex derivations!`);
+- Review questions where you scored below 60% in your attempt review.
+- Use the **AI Tutor** tab to ask specific conceptual questions and practice problem walkthroughs.`);
     } finally {
       setIsLoadingCoach(false);
     }

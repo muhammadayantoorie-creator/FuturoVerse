@@ -75,7 +75,7 @@ export const AnalyticsDashboard: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch(`/api/teacher/analytics?course=${selectedCourse}`);
+      const res = await fetch(`/api/teacher/analytics?course=${selectedCourse}`, { credentials: 'include' });
       if (!res.ok) {
         throw new Error(`Failed to load analytics: ${res.statusText}`);
       }
@@ -84,56 +84,12 @@ export const AnalyticsDashboard: React.FC = () => {
     } catch (err: any) {
       console.error('Error fetching analytics:', err);
       setError(err.message || 'Something went wrong while fetching analytics data.');
-      
-      // Load fallback mock data matching db structure if API fails or server is restarting
       setAnalytics({
-        attendance: [
-          { date: 'Week 1', Physics101: 92, Biology202: 88, Mathematics301: 95 },
-          { date: 'Week 2', Physics101: 94, Biology202: 90, Mathematics301: 93 },
-          { date: 'Week 3', Physics101: 89, Biology202: 91, Mathematics301: 96 },
-          { date: 'Week 4', Physics101: 91, Biology202: 87, Mathematics301: 94 },
-          { date: 'Week 5', Physics101: 95, Biology202: 92, Mathematics301: 97 },
-          { date: 'Week 6', Physics101: 93, Biology202: 95, Mathematics301: 94 },
-          { date: 'Week 7', Physics101: 90, Biology202: 93, Mathematics301: 92 },
-          { date: 'Week 8', Physics101: 95, Biology202: 94, Mathematics301: 96 }
-        ],
-        studentGrowth: [
-          { name: 'Week 1', Physics101: 65, Biology202: 70, Mathematics301: 62 },
-          { name: 'Week 2', Physics101: 68, Biology202: 73, Mathematics301: 64 },
-          { name: 'Week 3', Physics101: 72, Biology202: 71, Mathematics301: 68 },
-          { name: 'Week 4', Physics101: 70, Biology202: 76, Mathematics301: 70 },
-          { name: 'Week 5', Physics101: 75, Biology202: 80, Mathematics301: 73 },
-          { name: 'Week 6', Physics101: 78, Biology202: 82, Mathematics301: 76 },
-          { name: 'Week 7', Physics101: 80, Biology202: 84, Mathematics301: 81 },
-          { name: 'Week 8', Physics101: 82, Biology202: 85, Mathematics301: 83 }
-        ],
-        completionRates: [
-          { name: 'Physics 101', quizzes: 88, lessons: 94, assignments: 85 },
-          { name: 'Biology 202', quizzes: 92, lessons: 96, assignments: 89 },
-          { name: 'Mathematics 301', quizzes: 85, lessons: 90, assignments: 80 },
-          { name: 'Urdu Literature', quizzes: 95, lessons: 98, assignments: 92 }
-        ],
-        weakTopics: [
-          { topic: 'Quantum Wavefunctions', subject: 'Physics 101', averageScore: 38, strugglingStudents: 14 },
-          { topic: 'Cellular Organelle Functions', subject: 'Biology 202', averageScore: 45, strugglingStudents: 12 },
-          { topic: 'Limits & Continuous Functions', subject: 'Mathematics 301', averageScore: 55, strugglingStudents: 18 },
-          { topic: 'Urdu Grammar Basics', subject: 'Urdu Literature', averageScore: 88, strugglingStudents: 2 },
-          { topic: 'Newtonian Forces 3D', subject: 'Physics 101', averageScore: 49, strugglingStudents: 9 },
-          { topic: 'Organic Synthesis', subject: 'Chemistry 101', averageScore: 52, strugglingStudents: 11 },
-          { topic: 'Integration by Parts', subject: 'Mathematics 301', averageScore: 47, strugglingStudents: 15 }
-        ],
-        studentAnalytics: [
-          { id: 'std_001', name: 'Muhammad Ali', course: 'Physics 101', attendance: 98, quizzesCompleted: 6, avgQuizScore: 92, status: 'active' },
-          { id: 'std_002', name: 'Ayesha Khan', course: 'Physics 101', attendance: 85, quizzesCompleted: 5, avgQuizScore: 79, status: 'active' },
-          { id: 'std_003', name: 'Zainab Fatima', course: 'Biology 202', attendance: 94, quizzesCompleted: 6, avgQuizScore: 88, status: 'active' },
-          { id: 'std_004', name: 'Ahmed Raza', course: 'Mathematics 301', attendance: 78, quizzesCompleted: 4, avgQuizScore: 58, status: 'warning' },
-          { id: 'std_005', name: 'Fatima Noor', course: 'Physics 101', attendance: 60, quizzesCompleted: 2, avgQuizScore: 48, status: 'danger' },
-          { id: 'std_006', name: 'Bilal Siddiqui', course: 'Mathematics 301', attendance: 92, quizzesCompleted: 6, avgQuizScore: 85, status: 'active' },
-          { id: 'std_007', name: 'Hamza Malik', course: 'Biology 202', attendance: 88, quizzesCompleted: 5, avgQuizScore: 72, status: 'active' },
-          { id: 'std_008', name: 'Amina Bibi', course: 'Urdu Literature', attendance: 96, quizzesCompleted: 6, avgQuizScore: 94, status: 'active' },
-          { id: 'std_009', name: 'Usman Ghani', course: 'Mathematics 301', attendance: 55, quizzesCompleted: 3, avgQuizScore: 42, status: 'danger' },
-          { id: 'std_010', name: 'Sana Javed', course: 'Biology 202', attendance: 90, quizzesCompleted: 5, avgQuizScore: 81, status: 'active' }
-        ]
+        attendance: [],
+        studentGrowth: [],
+        completionRates: [],
+        weakTopics: [],
+        studentAnalytics: []
       });
     } finally {
       setLoading(false);
@@ -307,7 +263,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
     // Filter roster according to selected subject
     const list = analytics.studentAnalytics.filter(s => courseMatch(s.course, selectedCourse));
-    if (list.length === 0) return { avgScore: 76.5, attendance: 91.2, completion: 88, weakTopicsCount: 0 };
+    if (list.length === 0) return { avgScore: 0, attendance: 0, completion: 0, weakTopicsCount: 0 };
 
     const totalScore = list.reduce((sum, s) => sum + s.avgQuizScore, 0);
     const totalAtt = list.reduce((sum, s) => sum + s.attendance, 0);

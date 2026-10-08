@@ -1,0 +1,29 @@
+{
+  "stats": {
+    "activeStudents": 0,
+    "quizzesGenerated": 0,
+    "avgClassScore": 0,
+    "totalMaterials": 0
+  },
+  "users": [],
+  "classes": [],
+  "classrooms": [],
+  "materials": [],
+  "students": [],
+  "notifications": [],
+  "lessons": [],
+  "quizzes": [],
+  "quizAttempts": [],
+  "workspaceItems": [],
+  "weakTopics": [],
+  "tickets": [],
+  "gradebook": [],
+  "conversations": [],
+  "analytics": {
+    "attendance": [],
+    "studentGrowth": [],
+    "completionRates": [],
+    "weakTopics": [],
+    "studentAnalytics": []
+  }
+}

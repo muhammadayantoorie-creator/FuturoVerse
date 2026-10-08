@@ -88,28 +88,16 @@ export const Gradebook: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch('/api/teacher/gradebook');
+      const res = await fetch('/api/teacher/gradebook', { credentials: 'include' });
       if (!res.ok) {
         throw new Error(`Failed to load gradebook: ${res.statusText}`);
       }
       const data = await res.json();
-      setRecords(data);
+      setRecords(Array.isArray(data) ? data : []);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Could not synchronized gradebook marks.');
-      // Load fallback local items in case server is refreshing
-      setRecords([
-        { id: 'gr_001', studentId: 'std_001', studentName: 'Muhammad Ali', course: 'Physics 101', assignment1: 85, assignment2: 90, midterm: 88, finalExam: 94, classProject: 95, attendanceMark: 98, comments: 'Excellent conceptual comprehension. Active in discussions.', lastUpdated: new Date().toISOString() },
-        { id: 'gr_002', studentId: 'std_002', studentName: 'Ayesha Khan', course: 'Physics 101', assignment1: 78, assignment2: 82, midterm: 75, finalExam: 80, classProject: 82, attendanceMark: 85, comments: 'Good performance. Needs a bit more focus on lab reports.', lastUpdated: new Date().toISOString() },
-        { id: 'gr_003', studentId: 'std_003', studentName: 'Zainab Fatima', course: 'Biology 202', assignment1: 92, assignment2: 88, midterm: 85, finalExam: 90, classProject: 89, attendanceMark: 94, comments: 'Consistent, neat lab write-ups. Excellent quiz taker.', lastUpdated: new Date().toISOString() },
-        { id: 'gr_004', studentId: 'std_004', studentName: 'Ahmed Raza', course: 'Mathematics 301', assignment1: 58, assignment2: 60, midterm: 55, finalExam: 62, classProject: 58, attendanceMark: 78, comments: 'Needs remedial assistance in calculus topics.', lastUpdated: new Date().toISOString() },
-        { id: 'gr_005', studentId: 'std_005', studentName: 'Fatima Noor', course: 'Physics 101', assignment1: 45, assignment2: 50, midterm: 48, finalExam: 52, classProject: 47, attendanceMark: 60, comments: 'High risk of failing. Recommend active tutoring immediately.', lastUpdated: new Date().toISOString() },
-        { id: 'gr_006', studentId: 'std_006', studentName: 'Bilal Siddiqui', course: 'Mathematics 301', assignment1: 88, assignment2: 85, midterm: 82, finalExam: 87, classProject: 86, attendanceMark: 92, comments: 'Participates well. Strong mathematical logic.', lastUpdated: new Date().toISOString() },
-        { id: 'gr_007', studentId: 'std_007', studentName: 'Hamza Malik', course: 'Biology 202', assignment1: 74, assignment2: 70, midterm: 75, finalExam: 72, classProject: 76, attendanceMark: 88, comments: 'Requires continuous guidance on biology processes.', lastUpdated: new Date().toISOString() },
-        { id: 'gr_008', studentId: 'std_008', studentName: 'Amina Bibi', course: 'Urdu Literature', assignment1: 95, assignment2: 92, midterm: 96, finalExam: 94, classProject: 95, attendanceMark: 96, comments: 'Beautiful Urdu calligraphy and composition skills.', lastUpdated: new Date().toISOString() },
-        { id: 'gr_009', studentId: 'std_009', studentName: 'Usman Ghani', course: 'Mathematics 301', assignment1: 40, assignment2: 45, midterm: 38, finalExam: 42, classProject: 46, attendanceMark: 55, comments: 'Struggling with fundamentals. Missed multiple assignments.', lastUpdated: new Date().toISOString() },
-        { id: 'gr_010', studentId: 'std_010', studentName: 'Sana Javed', course: 'Biology 202', assignment1: 80, assignment2: 85, midterm: 78, finalExam: 82, classProject: 84, attendanceMark: 90, comments: 'Very receptive to feedback. Solid steady growth.', lastUpdated: new Date().toISOString() }
-      ]);
+      setError(err.message || 'Could not synchronize gradebook marks.');
+      setRecords([]);
     } finally {
       setLoading(false);
     }
@@ -158,6 +146,7 @@ export const Gradebook: React.FC = () => {
       const res = await fetch(`/api/teacher/gradebook/${editingRecord.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(editingRecord)
       });
 
@@ -209,6 +198,7 @@ export const Gradebook: React.FC = () => {
       const res = await fetch('/api/teacher/gradebook/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           ids: selectedIds,
           field: bulkField,

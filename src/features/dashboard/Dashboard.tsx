@@ -65,14 +65,8 @@ import {
   EmptyState
 } from '@/src/components/ui';
 
-// Mock data for charts
-const progressTrendData = [
-  { name: 'Week 1', avgScore: 68, progress: 20 },
-  { name: 'Week 2', avgScore: 71, progress: 38 },
-  { name: 'Week 3', avgScore: 70, progress: 52 },
-  { name: 'Week 4', avgScore: 74, progress: 68 },
-  { name: 'Week 5', avgScore: 76.5, progress: 85 },
-];
+// Progress trend data populated from real assessments
+const progressTrendData: { name: string; avgScore: number; progress: number }[] = [];
 
 const demoTourSteps = [
   { title: 'Start with a real lecture', description: 'Upload a PDF, presentation, or video. FuturoVerse extracts learning context for the AI workspace.', action: 'Open materials' },
@@ -1416,26 +1410,33 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={progressTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorAvg" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorProgress" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
-                <XAxis dataKey="name" tick={{ fontSize: 10, fill: tickColor }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: tickColor }} axisLine={false} tickLine={false} />
-                <ChartTooltip />
-                <Area type="monotone" dataKey="avgScore" name="Avg Score (%)" stroke="#2563eb" strokeWidth={2} fillOpacity={1} fill="url(#colorAvg)" />
-                <Area type="monotone" dataKey="progress" name="Syllabus Progress (%)" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorProgress)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {progressTrendData.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-4">
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">No trend data recorded yet.</p>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Class averages and syllabus progress will appear here as coursework progresses.</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={progressTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorAvg" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorProgress" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: tickColor }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: tickColor }} axisLine={false} tickLine={false} />
+                  <ChartTooltip />
+                  <Area type="monotone" dataKey="avgScore" name="Avg Score (%)" stroke="#2563eb" strokeWidth={2} fillOpacity={1} fill="url(#colorAvg)" />
+                  <Area type="monotone" dataKey="progress" name="Syllabus Progress (%)" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorProgress)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </Card>
 
@@ -1451,8 +1452,9 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="h-64">
             {weakTopics.length === 0 ? (
-              <div className="h-full flex items-center justify-center">
-                <Spinner size="sm" />
+              <div className="h-full flex flex-col items-center justify-center text-center p-4">
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">No weak topics identified yet.</p>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">AI analyzes student quiz performances to automatically highlight focus areas here.</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
