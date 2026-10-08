@@ -399,7 +399,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
 
                       <ul className="space-y-2.5 pt-2">
                         {[
-                          isRtl ? '1-کلک بائلنگول کوئز جنریٹر (انگریزی و اردو ترجمہ)' : '1-Click Bilingual Quiz Generator (FBISE / Board formats)',
+                          isRtl ? '1-کلک بائلنگول کوئز جنریٹر (انگریزی و اردو ترجمہ)' : '1-Click Multilingual Quiz Generator (Any Curriculum Format)',
                           isRtl ? 'کلاس روم کوڈ اور براہ راست ای میل نوٹیفکیشن سسٹم' : 'Instant Classroom Join Code & Broadcast Emailer',
                           isRtl ? 'طالب علم کی کمزوریوں اور حاضری کا خودکار تجزیہ' : 'At-risk Student Identification & Auto-Gradebook',
                           isRtl ? 'پی ڈی ایف اور پریزنٹیشن سلائیڈز سے سمری کی تیاری' : 'Automatic Lecture Slide & Handout Summarizer'
@@ -726,16 +726,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
       <section id="curriculum" className="py-16 bg-slate-100/70 dark:bg-slate-900/60 border-y border-slate-200/80 dark:border-slate-800/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-xs font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-6">
-            {isRtl ? 'ہم آہنگ تعلیمی بورڈز اور یونیورسٹیاں' : 'Full Alignment with National & Provincial Standards'}
+            {isRtl ? 'ہم آہنگ تعلیمی بورڈز اور یونیورسٹیاں' : 'Adaptable to Any Global Curriculum Standard'}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 opacity-85">
             {[
-              { name: 'FBISE Islamabad', badge: 'Federal Board' },
-              { name: 'HEC Pakistan', badge: 'Higher Education Commission' },
-              { name: 'BISE Lahore', badge: 'Punjab Curriculum' },
-              { name: 'BISE Karachi', badge: 'Sindh Board' },
-              { name: 'BISE Peshawar', badge: 'KPK Board' },
+              { name: 'Common Core', badge: 'USA Standard' },
               { name: 'Cambridge O/A Levels', badge: 'International' },
+              { name: 'IB Curriculum', badge: 'IB Diploma' },
+              { name: 'CBSE India', badge: 'National Board' },
+              { name: 'Edexcel', badge: 'UK Standard' },
+              { name: 'Any Custom Board', badge: 'Fully Adaptable' },
             ].map((board, idx) => (
               <div 
                 key={idx}
@@ -759,7 +759,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
             {isRtl ? 'اساتذہ اور اداروں کی آراء' : 'Educator & Student Reviews'}
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white mt-2">
-            {isRtl ? 'پاکستان بھر کے اساتذہ کا بھروسہ' : 'Trusted by Leading Faculty Across Pakistan'}
+            {isRtl ? 'پاکستان بھر کے اساتذہ کا بھروسہ' : 'Trusted by Leading Educators Worldwide'}
           </h2>
         </div>
 
@@ -772,7 +772,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
                 ))}
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed italic">
-                &quot;FuturoVerse has cut down my weekly quiz preparation from 4 hours to just 5 minutes. The bilingual English-Urdu question format is a blessing for students struggling with English terms.&quot;
+                &quot;FuturoVerse has cut down my weekly quiz preparation from 4 hours to just 5 minutes. The multilingual question format is a blessing for students who are stronger in their native language.&quot;
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3">
@@ -781,7 +781,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
               </div>
               <div>
                 <h4 className="text-xs font-bold text-slate-900 dark:text-white">Prof. Dr. Kamran Tariq</h4>
-                <p className="text-[11px] text-slate-400">Department of Physics, FAST-NUCES</p>
+                <p className="text-[11px] text-slate-400">Department of Physics, Global University Network</p>
               </div>
             </div>
           </div>
@@ -794,7 +794,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
                 ))}
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed italic">
-                &quot;Having the AI Study Buddy explain difficult organic chemistry reactions in Urdu anytime at night helped me improve my test scores from 55% to 88% in just three weeks.&quot;
+                &quot;Having the AI Study Buddy explain difficult organic chemistry reactions in my native language anytime at night helped me improve my test scores from 55% to 88% in just three weeks.&quot;
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3">
@@ -1106,7 +1106,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
             <p className="text-sm sm:text-base text-emerald-50 max-w-2xl mx-auto leading-relaxed">
               {isRtl 
                 ? 'مفت اکاؤنٹ بنائیں یا 1-کلک ڈیمو کے ذریعے اساتذہ، طلباء اور ایڈمنسٹریشن کی تمام صلاحیتیں آزمائیں۔' 
-                : 'Join thousands of educators and students across Pakistan. Create a free account or test drive the live environment in seconds.'}
+                : 'Join thousands of educators and students worldwide. Create a free account or test drive the live environment in seconds.'}
             </p>
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
