@@ -120,12 +120,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
             <a href="#solutions" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
               {isRtl ? 'رولز اور حل' : 'Solutions'}
             </a>
-            <a href="#curriculum" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-              {isRtl ? 'تعلیمی بورڈز' : 'Curriculum'}
-            </a>
-            <a href="#preview" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-              {isRtl ? 'لائیو ڈیمو' : 'Interactive Demo'}
-            </a>
             <a href="#faq" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
               {isRtl ? 'عام سوالات' : 'FAQ'}
             </a>
@@ -516,7 +510,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
                           {isRtl ? 'طالب علم ڈیش بورڈ' : 'Student Learning Hub'}
                         </span>
                         <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold">
-                          Semester 1 • Ahmed
+                          Semester 1 • Student Hub
                         </span>
                       </div>
 
@@ -670,8 +664,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
             </h3>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
               {isRtl 
-                ? 'فیڈرل بورڈ اور یونیورسٹی پیٹرن کے مطابق ایم سی کیوز، صحیح/غلط اور وضاحتی سوالات منٹوں میں بنائیں۔' 
-                : 'Create balanced MCQs and True/False assessments calibrated for difficulty (Easy, Medium, Hard) matching board exams.'}
+                ? 'جدید تعلیمی نصاب اور یونیورسٹی پیٹرن کے مطابق ایم سی کیوز، صحیح/غلط اور وضاحتی سوالات منٹوں میں بنائیں۔' 
+                : 'Create balanced MCQs and True/False assessments calibrated for difficulty (Easy, Medium, Hard) matching course objectives.'}
             </p>
           </div>
 
@@ -718,36 +712,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
                 ? 'طالب علم کن موضوعات میں مشکلات کا شکار ہیں، اے آئی فوری شناخت کر کے اصلاحی پریکٹس تجویز کرتا ہے۔' 
                 : 'Instantly pinpoint struggling concepts across Physics, Math, and Biology and generate targeted practice tests.'}
             </p>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. CURRICULUM BOARDS COMPATIBILITY */}
-      <section id="curriculum" className="py-16 bg-slate-100/70 dark:bg-slate-900/60 border-y border-slate-200/80 dark:border-slate-800/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-6">
-            {isRtl ? 'ہم آہنگ تعلیمی بورڈز اور یونیورسٹیاں' : 'Adaptable to Any Global Curriculum Standard'}
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 opacity-85">
-            {[
-              { name: 'Common Core', badge: 'USA Standard' },
-              { name: 'Cambridge O/A Levels', badge: 'International' },
-              { name: 'IB Curriculum', badge: 'IB Diploma' },
-              { name: 'CBSE India', badge: 'National Board' },
-              { name: 'Edexcel', badge: 'UK Standard' },
-              { name: 'Any Custom Board', badge: 'Fully Adaptable' },
-            ].map((board, idx) => (
-              <div 
-                key={idx}
-                className="px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex items-center gap-2.5"
-              >
-                <School className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <div className="text-left">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">{board.name}</span>
-                  <span className="text-[9px] text-slate-400 font-medium">{board.badge}</span>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -1143,8 +1107,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToAuth }) =>
                   { label: 'For Admins', href: '#solutions' },
                   { label: 'For Schools', href: '#pricing' },
                   { label: 'For Universities', href: '#pricing' },
-                  { label: 'Curriculum Adaptable', href: '#curriculum' },
-                  { label: 'Global Standards', href: '#curriculum' },
+                  { label: 'Adaptive Learning', href: '#features' },
+                  { label: 'Global Standards', href: '#features' },
                 ].map(({ label, href }) => (
                   <li key={label}>
                     <a href={href} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
