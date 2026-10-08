@@ -291,7 +291,7 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
             FuturoVerse
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Bilingual Smart Classroom & Curriculum Platform
+            AI-Powered Smart Classroom & Curriculum Platform
           </p>
         </div>
 

@@ -154,8 +154,8 @@ export const Dashboard: React.FC = () => {
     subject: 'Physics 101',
     time: '10:00 AM',
     date: new Date().toISOString().split('T')[0],
-    instructor: 'Dr. Ahmed',
-    joinUrl: 'https://zoom.us/j/pk-class'
+    instructor: currentUser?.name || 'Instructor',
+    joinUrl: 'https://meet.google.com/new'
   });
 
   // Calendar selected day
@@ -255,7 +255,7 @@ export const Dashboard: React.FC = () => {
         fileName: file.name,
         fileType: fileType as any,
         courseName: materialsCourse === 'All' ? 'Physics 101' : materialsCourse,
-        fileContentText: `Lecture file containing full concepts on ${file.name.replace(/\.[^/.]+$/, "")}. This covers standard engineering/collegiate syllabus contents for Pakistan.`
+        fileContentText: `Lecture file containing full concepts on ${file.name.replace(/\.[^/.]+$/, "")}. This covers standard collegiate syllabus contents for the subject.`
       }).then(() => {
         setMaterialsPage(1);
         showToast('Lecture uploaded successfully! AI is analyzing key takeaways in the background.', 'success');
@@ -298,8 +298,8 @@ export const Dashboard: React.FC = () => {
       subject: 'Physics 101',
       time: '10:00 AM',
       date: new Date().toISOString().split('T')[0],
-      instructor: 'Dr. Ahmed',
-      joinUrl: 'https://zoom.us/j/pk-class'
+      instructor: currentUser?.name || 'Instructor',
+      joinUrl: 'https://meet.google.com/new'
     });
     showToast('Class session scheduled in calendar!', 'success');
   };
@@ -410,7 +410,7 @@ export const Dashboard: React.FC = () => {
               {getTranslation(locale, 'roleStudent')} Workspace
             </span>
             <h2 className="text-3xl md:text-4xl font-bold font-sans tracking-tight mt-2">
-              {getTranslation(locale, 'assalamAlaikum')}, {currentUser.name}! 👋
+              Hello, {currentUser.name}! 👋
             </h2>
             <p className="text-teal-50/90 text-sm mt-2 max-w-xl">
               {getTranslation(locale, 'learningOverviewSub')} Keep pushing yourself to build cognitive rigor and achieve academic excellence.
