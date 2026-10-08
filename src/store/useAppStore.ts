@@ -204,7 +204,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Fetch Stats
   fetchStats: async () => {
     try {
-      const res = await fetch('/api/teacher/stats');
+      const res = await fetch('/api/teacher/stats', { credentials: 'include' });
       if (res.ok) {
         const stats = await res.json();
         set({ stats });
@@ -218,7 +218,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   fetchMaterials: async (search = '', course = '', page = 1, limit = 4) => {
     try {
       const url = `/api/teacher/materials?search=${encodeURIComponent(search)}&course=${encodeURIComponent(course)}&page=${page}&limit=${limit}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { credentials: 'include' });
       if (res.ok) {
         const payload = await res.json();
         set({ uploadedMaterials: payload.data });
@@ -236,6 +236,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await fetch('/api/teacher/materials/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(material),
       });
       if (res.ok) {
@@ -258,6 +259,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       const res = await fetch(`/api/teacher/materials/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
       if (res.ok) {
         await get().fetchMaterials();
@@ -278,6 +280,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await fetch(`/api/teacher/materials/${id}/rename`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ fileName }),
       });
       if (res.ok) {
@@ -297,7 +300,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   fetchStudents: async (search = '', course = '', page = 1, limit = 5) => {
     try {
       const url = `/api/teacher/students?search=${encodeURIComponent(search)}&course=${encodeURIComponent(course)}&page=${page}&limit=${limit}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { credentials: 'include' });
       if (res.ok) {
         const payload = await res.json();
         return payload;
@@ -314,6 +317,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await fetch('/api/teacher/students', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(student),
       });
       if (res.ok) {
@@ -328,7 +332,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Fetch Notifications
   fetchNotifications: async () => {
     try {
-      const res = await fetch('/api/teacher/notifications');
+      const res = await fetch('/api/teacher/notifications', { credentials: 'include' });
       if (res.ok) {
         const notifications = await res.json();
         const unreadCount = notifications.filter((n: any) => !n.read).length;
@@ -342,7 +346,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Clear single Notification
   clearNotification: async (id) => {
     try {
-      const res = await fetch(`/api/teacher/notifications/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/teacher/notifications/${id}`, { method: 'DELETE', credentials: 'include' });
       if (res.ok) {
         await get().fetchNotifications();
       }
@@ -354,7 +358,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Mark single notification as read
   markNotificationAsRead: async (id) => {
     try {
-      const res = await fetch(`/api/teacher/notifications/${id}/read`, { method: 'POST' });
+      const res = await fetch(`/api/teacher/notifications/${id}/read`, { method: 'POST', credentials: 'include' });
       if (res.ok) {
         await get().fetchNotifications();
       }
@@ -366,7 +370,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Mark all notifications as read
   markAllNotificationsRead: async () => {
     try {
-      const res = await fetch('/api/teacher/notifications/read', { method: 'POST' });
+      const res = await fetch('/api/teacher/notifications/read', { method: 'POST', credentials: 'include' });
       if (res.ok) {
         await get().fetchNotifications();
       }
@@ -378,7 +382,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Clear all notifications
   clearAllNotifications: async () => {
     try {
-      const res = await fetch('/api/teacher/notifications', { method: 'DELETE' });
+      const res = await fetch('/api/teacher/notifications', { method: 'DELETE', credentials: 'include' });
       if (res.ok) {
         set({ notifications: [], notificationCount: 0 });
       }
@@ -393,6 +397,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await fetch('/api/teacher/notifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(notification),
       });
       if (res.ok) {
@@ -406,7 +411,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Fetch Lessons
   fetchLessons: async () => {
     try {
-      const res = await fetch('/api/teacher/lessons');
+      const res = await fetch('/api/teacher/lessons', { credentials: 'include' });
       if (res.ok) {
         const todaysLessons = await res.json();
         set({ todaysLessons });
@@ -422,6 +427,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await fetch('/api/teacher/lessons', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(lesson),
       });
       if (res.ok) {
@@ -438,6 +444,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const res = await fetch('/api/teacher/quizzes/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(config),
     });
     if (res.ok) {
@@ -454,7 +461,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Fetch Weak Topics
   fetchWeakTopics: async () => {
     try {
-      const res = await fetch('/api/teacher/weak-topics');
+      const res = await fetch('/api/teacher/weak-topics', { credentials: 'include' });
       if (res.ok) {
         const weakTopics = await res.json();
         set({ weakTopics });
@@ -468,7 +475,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   fetchClassrooms: async (search = '', department = '', status = '', sort = 'name', order = 'asc', page = 1, limit = 6) => {
     try {
       const url = `/api/classrooms?search=${encodeURIComponent(search)}&department=${encodeURIComponent(department)}&status=${encodeURIComponent(status)}&sort=${sort}&order=${order}&page=${page}&limit=${limit}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { credentials: 'include' });
       if (res.ok) {
         const payload = await res.json();
         set({ classrooms: payload.data });
@@ -496,6 +503,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await fetch('/api/classrooms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(classroom),
       });
       if (res.ok) {
@@ -545,6 +553,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const res = await fetch(`/api/classrooms/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(classroom),
     });
     if (res.ok) {
@@ -558,7 +567,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   deleteClassroom: async (id) => {
-    const res = await fetch(`/api/classrooms/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/classrooms/${id}`, { method: 'DELETE', credentials: 'include' });
     if (res.ok) {
       await get().fetchClassrooms();
       await get().fetchStats();
@@ -573,6 +582,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const res = await fetch(`/api/classrooms/${id}/invite`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ name, email }),
     });
     if (res.ok) {
@@ -588,6 +598,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const res = await fetch(`/api/classrooms/${id}/join`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ name, email }),
     });
     if (res.ok) {
@@ -604,6 +615,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const res = await fetch(`/api/classrooms/${id}/leave`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ email }),
     });
     if (res.ok) {

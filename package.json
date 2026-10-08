@@ -12,6 +12,8 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/types": "^8.0.6",
     "@google/genai": "^2.4.0",
     "@hookform/resolvers": "^5.4.0",
     "@tailwindcss/vite": "^4.1.14",
@@ -23,7 +25,7 @@
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "firebase": "^12.15.0",
-    "firebase-admin": "^14.1.0",
+    "firebase-admin": "^14.5.0",
     "jsonwebtoken": "^9.0.3",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.546.0",

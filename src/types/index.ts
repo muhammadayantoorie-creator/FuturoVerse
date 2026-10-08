@@ -53,6 +53,7 @@ export interface Lesson {
   title: string;
   subject: string;
   time: string; // e.g. "09:00 AM"
+  date?: string;
   instructor: string;
   joinUrl?: string;
 }
