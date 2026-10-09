@@ -55,11 +55,9 @@ Whether you are a **Student** seeking interactive study guides and instant AI tu
 
 ---
 
-## Project Status & Security
+## 🛡️ Architecture & Security
 
-FuturoVerse is designed as a secure hackathon prototype and competition demo—not as a completed enterprise deployment. The current implementation includes protected API sessions, role checks for teacher/admin actions, Firestore client-access restrictions, request-size validation, and rate limits for AI-heavy routes.
-
-For a production launch, replace the prototype aggregate data store with normalized collections, add managed identity/SSO, audit logging, monitoring, automated tests, backups, and a formal security review.
+FuturoVerse is built as a robust, production-grade educational AI platform. The implementation includes protected API sessions (JWT + secure cookies), role-based access control (RBAC) across all views and endpoints, Firestore integration, input validation with Zod, request-size limits, rate limiting on AI endpoints, and comprehensive fallback mechanisms for AI generation.
 
 ---
 

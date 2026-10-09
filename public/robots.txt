@@ -1,0 +1,11 @@
+# Allow all bots to crawl the landing page
+User-agent: *
+Allow: /
+
+# Disallow dashboard, auth and API routes from indexing
+Disallow: /api/
+Disallow: /?tab=
+Disallow: /reset-password
+
+# Sitemap location
+Sitemap: https://futuroverse.vercel.app/sitemap.xml

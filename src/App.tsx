@@ -24,6 +24,7 @@ const Settings = lazy(() => import('@/src/features/settings/Settings').then(m =>
 const HelpCenter = lazy(() => import('@/src/features/help/HelpCenter').then(m => ({ default: m.HelpCenter })));
 const AuthPage = lazy(() => import('@/src/features/auth/AuthPage').then(m => ({ default: m.AuthPage })));
 const LandingPage = lazy(() => import('@/src/features/landing/LandingPage').then(m => ({ default: m.LandingPage })));
+const NotFoundPage = lazy(() => import('@/src/features/not-found/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -49,7 +50,19 @@ function AppContent() {
   const { activeTab, currentRole, setRole, theme, locale } = useAppStore();
   const { data: user, isLoading } = useCurrentUserQuery();
 
-  const [viewState, setViewState] = useState<'landing' | 'auth' | 'app'>('landing');
+  const [viewState, setViewState] = useState<'landing' | 'auth' | 'app' | '404'>(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('token') || path === '/reset-password') {
+        return 'auth';
+      }
+      if (path !== '/' && path !== '/index.html' && path !== '') {
+        return '404';
+      }
+    }
+    return 'landing';
+  });
   const [authInitialView, setAuthInitialView] = useState<'login' | 'register'>('login');
   const [authInitialRole, setAuthInitialRole] = useState<Role>('teacher');
   const [showConfetti, setShowConfetti] = useState(false);
@@ -88,16 +101,16 @@ function AppContent() {
     return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
   }, []);
 
-  // Sync authenticated user info to Zustand
   useEffect(() => {
     if (user) {
+      const avatarFallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=0d9488&color=fff&size=128&bold=true&rounded=true`;
       useAppStore.setState({
         currentUser: {
           id: user.id,
           name: user.name,
           email: user.email,
           role: user.role,
-          avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC1jpDL0T17Nug1I73cKFaluo__r7LzQwxx6PsTUeiM0PfB0KlnSyBK5Gry5_OqPHSu2XUeiLHD0Pdgl8c-FK1Nh3ekz_yu2JDPjldCEwf2xom-BnUr3BRfYFoOKs-KxtJsF9Sn0_bmZZ3xkm_zpTa7yzbvyGvm8KxE63XBzDRXTGUNIFpriJG7TBj5SU4ituE492UPv8YljJ3pdhsSM98_2YKFMEOD68dkMEuppByzzUSEjWiE1ImHHA',
+          avatarUrl: user.avatarUrl || avatarFallback,
         },
         currentRole: user.role,
       });
@@ -123,6 +136,19 @@ function AppContent() {
     );
   }
 
+  if (viewState === '404') {
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center"><PageLoader /></div>}>
+        <NotFoundPage onGoHome={() => {
+          if (typeof window !== 'undefined') {
+            window.history.pushState({}, '', '/');
+          }
+          setViewState(user ? 'app' : 'landing');
+        }} />
+      </Suspense>
+    );
+  }
+
   if (viewState === 'landing' && !user) {
     return (
       <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center"><PageLoader /></div>}>
@@ -134,7 +160,12 @@ function AppContent() {
   if ((viewState === 'auth' || !user) && viewState !== 'landing') {
     return (
       <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center"><PageLoader /></div>}>
-        <AuthPage initialView={authInitialView} initialRole={authInitialRole} onBackToLanding={() => setViewState('landing')} />
+        <AuthPage initialView={authInitialView} initialRole={authInitialRole} onBackToLanding={() => {
+          if (typeof window !== 'undefined') {
+            window.history.pushState({}, '', '/');
+          }
+          setViewState('landing');
+        }} />
       </Suspense>
     );
   }
