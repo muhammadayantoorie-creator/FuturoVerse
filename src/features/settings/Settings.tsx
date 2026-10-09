@@ -48,7 +48,7 @@ export const Settings: React.FC = () => {
       roleSelector: 'Active View Mode',
       roleSub: 'Switch viewport to test experience as an instructor or student.',
       sysInfo: 'Educational System Status',
-      sysInfoSub: 'FuturoVerse is connected securely to the academic database and pre-optimized with the National Curriculum of Pakistan.',
+      sysInfoSub: 'FuturoVerse is connected securely to the academic database and optimized for diverse educational curricula worldwide.',
       active: 'Active',
       themeDark: 'Dark Mode',
       themeLight: 'Light Mode',
@@ -67,7 +67,7 @@ export const Settings: React.FC = () => {
       roleSelector: 'فعال ویو موڈ',
       roleSub: 'استاد یا طالب علم کے طور پر سسٹم کو ٹیسٹ کرنے کے لیے رول تبدیل کریں۔',
       sysInfo: 'تعلیمی نظام کی حیثیت',
-      sysInfoSub: 'فیوچروورس تعلیمی ڈیٹا بیس سے محفوظ طریقے سے منسلک ہے اور پاکستان کے قومی نصاب کے مطابق بہتر بنایا گیا ہے۔',
+      sysInfoSub: 'فیوچروورس تعلیمی ڈیٹا بیس سے محفوظ طریقے سے منسلک ہے اور دنیا بھر کے متنوع تعلیمی نصاب کے مطابق بہتر بنایا گیا ہے۔',
       active: 'فعال',
       themeDark: 'ڈارک موڈ',
       themeLight: 'لائٹ موڈ',
@@ -85,10 +85,10 @@ export const Settings: React.FC = () => {
   ] as const;
 
   const boards = [
-    { id: 'fbise', name: 'Federal Board (FBISE)', desc: 'Federal Board of Intermediate and Secondary Education' },
-    { id: 'pctb', name: 'Punjab Board (PCTB)', desc: 'Punjab Curriculum and Textbook Board' },
-    { id: 'sindh', name: 'Sindh Board', desc: 'Sindh Curriculum & Textbook Board' },
-    { id: 'kpk', name: 'KPK Board', desc: 'Khyber Pakhtunkhwa Textbook Board' }
+    { id: 'national', name: 'National / Federal Board', desc: 'National Curriculum and Education Standards' },
+    { id: 'state', name: 'State / Provincial Board', desc: 'Regional Curriculum and Textbook Authority' },
+    { id: 'cambridge', name: 'Cambridge (IGCSE / A-Level)', desc: 'Cambridge Assessment International Education' },
+    { id: 'ib', name: 'IB (International Baccalaureate)', desc: 'International Baccalaureate Organization' }
   ];
 
   return (
@@ -127,10 +127,10 @@ export const Settings: React.FC = () => {
                 {t.profileTitle}
               </span>
               <h3 className="font-headline-md text-xl font-bold text-slate-800 dark:text-slate-100">
-                {currentUser?.name || 'Ahmed'}
+                {currentUser?.name || 'User'}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-                {currentUser?.email || 'ahmed.alipk@uol.edu.pk'}
+                {currentUser?.email || 'user@institution.edu'}
               </p>
             </div>
           </div>

@@ -832,7 +832,7 @@ export const Dashboard: React.FC = () => {
                   {currentUser.email}
                 </p>
                 <div className="mt-2.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">
-                  University of Lahore Campus
+                  Educational Institution
                 </div>
               </div>
 
@@ -1208,7 +1208,7 @@ export const Dashboard: React.FC = () => {
           <p className="text-teal-50/90 text-sm max-w-xl">
             {currentRole === 'admin' 
               ? 'Complete institutional authority: Full access across all departments, teacher classrooms, analytics, and grade audit logs.' 
-              : `${getTranslation(locale, 'classesOverviewSub')} Designed for the Pakistani educational landscape.`}
+              : `${getTranslation(locale, 'classesOverviewSub')} Designed for modern educators and learners worldwide.`}
           </p>
         </div>
         
@@ -2031,7 +2031,7 @@ export const Dashboard: React.FC = () => {
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Institutional Email</label>
             <Input 
               type="email" 
-              placeholder="e.g. bilal.s@uol.edu.pk" 
+              placeholder="e.g. student@institution.edu" 
               value={newStudentForm.email}
               onChange={(e) => setNewStudentForm(prev => ({ ...prev, email: e.target.value }))}
               required
@@ -2171,7 +2171,7 @@ export const Dashboard: React.FC = () => {
       >
         {generatingQuizStatus === null && (
           <div className="space-y-4">
-            <p className="text-xs text-slate-400">Generate high-fidelity MCQs or True-False tests formatted for Pakistani colleges using Gemini.</p>
+            <p className="text-xs text-slate-400">Generate high-fidelity MCQs or True-False tests tailored to your curriculum using Gemini AI.</p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">

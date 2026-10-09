@@ -77,10 +77,10 @@ export const HelpCenter: React.FC = () => {
     {
       id: 2,
       category: 'ai',
-      questionEn: 'What Pakistani curricula boards are supported by the AI?',
-      questionUr: 'اے آئی کن پاکستانی امتحانی بورڈز کے نصاب کو سپورٹ کرتا ہے؟',
-      answerEn: 'FuturoVerse is pre-optimized for Pakistani education. The AI auto-adapts to Punjab Textbook Board (PCTB), Federal Board (FBISE), Sindh Board, and KPK Board syllabi based on the content of the books and lecture notes you upload.',
-      answerUr: 'فیوچروورس خصوصی طور پر پاکستانی تعلیمی نظام کے لیے بنایا گیا ہے۔ آپ جو بھی لیکچر نوٹس یا کتاب کا باب اپ لوڈ کریں گے، اے آئی خود بخود پنجاب بورڈ (PCTB)، فیڈرل بورڈ (FBISE)، سندھ بورڈ، یا خیبر پختونخوا بورڈ کے نصاب کے مطابق خود کو ڈھال لے گا۔'
+      questionEn: 'What curriculum standards are supported by the AI?',
+      questionUr: 'اے آئی کن تعلیمی نصاب کو سپورٹ کرتا ہے؟',
+      answerEn: 'FuturoVerse AI auto-adapts to any curriculum or syllabus. Simply upload your textbooks, lecture notes, or course materials — the AI reads the content and generates quizzes, summaries, and study guides that match your specific curriculum, whether national, Cambridge IGCSE, IB, or any other.',
+      answerUr: 'فیوچروورس اے آئی کسی بھی تعلیمی نصاب کے مطابق خود کو ڈھال سکتا ہے۔ بس اپنی کتابیں، لیکچر نوٹس یا کورس مواد اپ لوڈ کریں — اے آئی مواد کو پڑھ کر آپ کے مخصوص نصاب کے مطابق کوئزز، خلاصے اور مطالعاتی گائیڈز تیار کرتا ہے۔'
     },
     {
       id: 3,
@@ -453,7 +453,7 @@ export const HelpCenter: React.FC = () => {
                     required
                     value={formEmail}
                     onChange={(e) => setFormEmail(e.target.value)}
-                    placeholder={isRtl ? 'email@domain.com' : 'e.g. user@institution.edu.pk'}
+                    placeholder={isRtl ? 'email@domain.com' : 'e.g. user@institution.edu'}
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2 px-3.5 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition-all text-slate-800 dark:text-slate-100 font-sans"
                   />
                 </div>

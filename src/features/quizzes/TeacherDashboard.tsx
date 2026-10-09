@@ -581,7 +581,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               <textarea
                 value={aiTopic}
                 onChange={(e) => setAiTopic(e.target.value)}
-                placeholder="e.g., Punjab Board Physics Chapter 3: Fluid Dynamics, Bernoullis Principle with bilingual Urdu glossaries..."
+                placeholder="e.g., Physics Chapter 3: Fluid Dynamics and Bernoulli's Principle, with bilingual glossaries..."
                 rows={3}
                 disabled={isGenerating}
                 className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-xs outline-none text-slate-800 dark:text-slate-100 placeholder-slate-400 leading-relaxed"

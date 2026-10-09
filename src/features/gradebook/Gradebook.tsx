@@ -406,7 +406,7 @@ export const Gradebook: React.FC = () => {
       <div className="hidden print:block border-b-2 border-slate-300 pb-4 mb-6">
         <div className="flex justify-between items-end">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">FuturoVerse Pakistan</h1>
+            <h1 className="text-2xl font-bold text-slate-900">FuturoVerse</h1>
             <p className="text-sm text-slate-500">Official Consolidated Academic Gradebook & Marksheet Report</p>
           </div>
           <div className="text-right text-xs text-slate-500 font-mono">

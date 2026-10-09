@@ -193,7 +193,7 @@ export const VoiceTutorModal: React.FC<VoiceTutorModalProps> = ({ isOpen, onClos
         body: JSON.stringify({
           message: textToSend,
           language: language === 'ur' ? 'Urdu' : 'English',
-          systemPrompt: `You are an encouraging, expert voice tutor in FuturoVerse — a Pakistani bilingual AI classroom. Answer in ${
+          systemPrompt: `You are an encouraging, expert voice tutor in FuturoVerse — an AI-powered bilingual classroom assistant. Answer in ${
             language === 'ur' ? 'Urdu' : 'English'
           }. Keep answers very concise (2-3 sentences), clear and natural for spoken playback. Avoid markdown, bullet points, or formatting symbols.`,
         }),

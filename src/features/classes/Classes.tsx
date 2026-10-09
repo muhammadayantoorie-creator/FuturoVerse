@@ -202,7 +202,7 @@ export const Classes: React.FC = () => {
       `• Room / Location: ${selectedClassroom.room || 'Main Campus'}\n` +
       `• Classroom Join Code: ${code}\n\n` +
       `To get started:\n` +
-      `1. Log in to FuturoVerse Pakistan.\n` +
+      `1. Log in to FuturoVerse.\n` +
       `2. Navigate to "Classrooms" -> "Join Class".\n` +
       `3. Enter the Classroom Code: ${code}\n\n` +
       `Warm regards,\n` +
@@ -856,7 +856,7 @@ export const Classes: React.FC = () => {
                     />
                     <Input
                       label={t('Student Email', 'طالب علم کا ای میل')}
-                      placeholder={t('e.g., student@uol.edu.pk', 'مثال: student@uol.edu.pk')}
+                      placeholder={t('e.g., student@institution.edu', 'مثال: student@institution.edu')}
                       value={inviteForm.email}
                       onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
                       required
@@ -891,7 +891,7 @@ export const Classes: React.FC = () => {
                   <form onSubmit={handleJoinSubmit} className="space-y-3">
                     <Input
                       label={t('Student Email to join as', 'شامل ہونے والے طالب علم کا ای میل')}
-                      placeholder={t('e.g., student.name@nust.edu.pk', 'مثال: student.name@nust.edu.pk')}
+                      placeholder={t('e.g., student.name@institution.edu', 'مثال: student.name@institution.edu')}
                       value={joinForm.email}
                       onChange={(e) => setJoinForm({ ...joinForm, email: e.target.value })}
                       required

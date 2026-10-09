@@ -458,7 +458,7 @@ export const AiTools: React.FC = () => {
               AI Co-Pilot Workspace
             </h2>
             <p className="text-slate-400 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
-              Empowering Pakistani educators and students with dual-language materials. Streamline summaries, quizzes, flashcards, mind maps, and vision solutions.
+              Empowering educators and students with AI-driven dual-language materials. Streamline summaries, quizzes, flashcards, mind maps, and vision solutions.
             </p>
           </div>
 
@@ -1146,7 +1146,7 @@ export const AiTools: React.FC = () => {
                             Dynamic Scaling
                           </h4>
                           <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-normal">
-                            Vary cognitive difficulty to align with Pakistani curricula.
+                            Vary cognitive difficulty to align with your curriculum standards.
                           </p>
                         </div>
                       </div>
