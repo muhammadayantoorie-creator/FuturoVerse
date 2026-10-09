@@ -284,9 +284,11 @@ export function AuthPage({ initialView = 'login', initialRole = 'teacher', onBac
 
         {/* Brand Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-blue-500 text-white mb-3 shadow-lg shadow-emerald-500/20">
-            <Sparkles className="w-6 h-6" />
-          </div>
+          <img
+            src="/logo.jpg"
+            alt="FuturoVerse Logo"
+            className="w-16 h-16 object-contain rounded-2xl mx-auto mb-3 shadow-lg shadow-emerald-500/10 border border-slate-700/50 bg-white/5 p-1"
+          />
           <h1 className="text-2xl font-black text-white tracking-tight">
             FuturoVerse
           </h1>

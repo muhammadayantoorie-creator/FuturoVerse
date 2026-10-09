@@ -333,22 +333,22 @@ function getDb() {
         { topic: 'Quantum Wavefunctions', subject: 'Physics 101', averageScore: 38, strugglingStudents: 14 },
         { topic: 'Cellular Organelle Functions', subject: 'Biology 202', averageScore: 45, strugglingStudents: 12 },
         { topic: 'Limits & Continuous Functions', subject: 'Mathematics 301', averageScore: 55, strugglingStudents: 18 },
-        { topic: 'Urdu Grammar Basics', subject: 'Urdu Literature', averageScore: 88, strugglingStudents: 2 },
+        { topic: 'Data Structures & Algorithms', subject: 'Computer Science 101', averageScore: 88, strugglingStudents: 2 },
         { topic: 'Newtonian Forces 3D', subject: 'Physics 101', averageScore: 49, strugglingStudents: 9 },
         { topic: 'Organic Synthesis', subject: 'Chemistry 101', averageScore: 52, strugglingStudents: 11 },
         { topic: 'Integration by Parts', subject: 'Mathematics 301', averageScore: 47, strugglingStudents: 15 }
       ],
       studentAnalytics: [
-        { id: 'std_001', name: 'Muhammad Ali', course: 'Physics 101', attendance: 98, quizzesCompleted: 6, avgQuizScore: 92, status: 'active' },
-        { id: 'std_002', name: 'Ayesha Khan', course: 'Physics 101', attendance: 85, quizzesCompleted: 5, avgQuizScore: 79, status: 'active' },
-        { id: 'std_003', name: 'Zainab Fatima', course: 'Biology 202', attendance: 94, quizzesCompleted: 6, avgQuizScore: 88, status: 'active' },
-        { id: 'std_004', name: 'Ahmed Raza', course: 'Mathematics 301', attendance: 78, quizzesCompleted: 4, avgQuizScore: 58, status: 'warning' },
-        { id: 'std_005', name: 'Fatima Noor', course: 'Physics 101', attendance: 60, quizzesCompleted: 2, avgQuizScore: 48, status: 'danger' },
-        { id: 'std_006', name: 'Bilal Siddiqui', course: 'Mathematics 301', attendance: 92, quizzesCompleted: 6, avgQuizScore: 85, status: 'active' },
-        { id: 'std_007', name: 'Hamza Malik', course: 'Biology 202', attendance: 88, quizzesCompleted: 5, avgQuizScore: 72, status: 'active' },
-        { id: 'std_008', name: 'Amina Bibi', course: 'Urdu Literature', attendance: 96, quizzesCompleted: 6, avgQuizScore: 94, status: 'active' },
-        { id: 'std_009', name: 'Usman Ghani', course: 'Mathematics 301', attendance: 55, quizzesCompleted: 3, avgQuizScore: 42, status: 'danger' },
-        { id: 'std_010', name: 'Sana Javed', course: 'Biology 202', attendance: 90, quizzesCompleted: 5, avgQuizScore: 81, status: 'active' }
+        { id: 'std_001', name: 'Alex Johnson', course: 'Physics 101', attendance: 98, quizzesCompleted: 6, avgQuizScore: 92, status: 'active' },
+        { id: 'std_002', name: 'Sarah Chen', course: 'Physics 101', attendance: 85, quizzesCompleted: 5, avgQuizScore: 79, status: 'active' },
+        { id: 'std_003', name: 'David Miller', course: 'Biology 202', attendance: 94, quizzesCompleted: 6, avgQuizScore: 88, status: 'active' },
+        { id: 'std_004', name: 'Emma Watson', course: 'Mathematics 301', attendance: 78, quizzesCompleted: 4, avgQuizScore: 58, status: 'warning' },
+        { id: 'std_005', name: 'Lucas Silva', course: 'Physics 101', attendance: 60, quizzesCompleted: 2, avgQuizScore: 48, status: 'danger' },
+        { id: 'std_006', name: 'Sophia Taylor', course: 'Mathematics 301', attendance: 92, quizzesCompleted: 6, avgQuizScore: 85, status: 'active' },
+        { id: 'std_007', name: 'Noah Williams', course: 'Biology 202', attendance: 88, quizzesCompleted: 5, avgQuizScore: 72, status: 'active' },
+        { id: 'std_008', name: 'Olivia Brown', course: 'Computer Science 101', attendance: 96, quizzesCompleted: 6, avgQuizScore: 94, status: 'active' },
+        { id: 'std_009', name: 'Liam Davis', course: 'Mathematics 301', attendance: 55, quizzesCompleted: 3, avgQuizScore: 42, status: 'danger' },
+        { id: 'std_010', name: 'Mia Garcia', course: 'Biology 202', attendance: 90, quizzesCompleted: 5, avgQuizScore: 81, status: 'active' }
       ]
     };
     changed = true;
@@ -356,16 +356,16 @@ function getDb() {
 
   if (!db.gradebook) {
     db.gradebook = [
-      { id: 'gr_001', studentId: 'std_001', studentName: 'Muhammad Ali', course: 'Physics 101', assignment1: 85, assignment2: 90, midterm: 88, finalExam: 94, classProject: 95, attendanceMark: 98, comments: 'Excellent conceptual comprehension. Active in discussions.', lastUpdated: new Date().toISOString() },
-      { id: 'gr_002', studentId: 'std_002', studentName: 'Ayesha Khan', course: 'Physics 101', assignment1: 78, assignment2: 82, midterm: 75, finalExam: 80, classProject: 82, attendanceMark: 85, comments: 'Good performance. Needs a bit more focus on lab reports.', lastUpdated: new Date().toISOString() },
-      { id: 'gr_003', studentId: 'std_003', studentName: 'Zainab Fatima', course: 'Biology 202', assignment1: 92, assignment2: 88, midterm: 85, finalExam: 90, classProject: 89, attendanceMark: 94, comments: 'Consistent, neat lab write-ups. Excellent quiz taker.', lastUpdated: new Date().toISOString() },
-      { id: 'gr_004', studentId: 'std_004', studentName: 'Ahmed Raza', course: 'Mathematics 301', assignment1: 58, assignment2: 60, midterm: 55, finalExam: 62, classProject: 58, attendanceMark: 78, comments: 'Needs remedial assistance in calculus topics.', lastUpdated: new Date().toISOString() },
-      { id: 'gr_005', studentId: 'std_005', studentName: 'Fatima Noor', course: 'Physics 101', assignment1: 45, assignment2: 50, midterm: 48, finalExam: 52, classProject: 47, attendanceMark: 60, comments: 'High risk of failing. Recommend active tutoring immediately.', lastUpdated: new Date().toISOString() },
-      { id: 'gr_006', studentId: 'std_006', studentName: 'Bilal Siddiqui', course: 'Mathematics 301', assignment1: 88, assignment2: 85, midterm: 82, finalExam: 87, classProject: 86, attendanceMark: 92, comments: 'Participates well. Strong mathematical logic.', lastUpdated: new Date().toISOString() },
-      { id: 'gr_007', studentId: 'std_007', studentName: 'Hamza Malik', course: 'Biology 202', assignment1: 74, assignment2: 70, midterm: 75, finalExam: 72, classProject: 76, attendanceMark: 88, comments: 'Requires continuous guidance on biology processes.', lastUpdated: new Date().toISOString() },
-      { id: 'gr_008', studentId: 'std_008', studentName: 'Amina Bibi', course: 'Urdu Literature', assignment1: 95, assignment2: 92, midterm: 96, finalExam: 94, classProject: 95, attendanceMark: 96, comments: 'Beautiful Urdu calligraphy and composition skills.', lastUpdated: new Date().toISOString() },
-      { id: 'gr_009', studentId: 'std_009', studentName: 'Usman Ghani', course: 'Mathematics 301', assignment1: 40, assignment2: 45, midterm: 38, finalExam: 42, classProject: 46, attendanceMark: 55, comments: 'Struggling with fundamentals. Missed multiple assignments.', lastUpdated: new Date().toISOString() },
-      { id: 'gr_010', studentId: 'std_010', studentName: 'Sana Javed', course: 'Biology 202', assignment1: 80, assignment2: 85, midterm: 78, finalExam: 82, classProject: 84, attendanceMark: 90, comments: 'Very receptive to feedback. Solid steady growth.', lastUpdated: new Date().toISOString() }
+      { id: 'gr_001', studentId: 'std_001', studentName: 'Alex Johnson', course: 'Physics 101', assignment1: 85, assignment2: 90, midterm: 88, finalExam: 94, classProject: 95, attendanceMark: 98, comments: 'Excellent conceptual comprehension. Active in discussions.', lastUpdated: new Date().toISOString() },
+      { id: 'gr_002', studentId: 'std_002', studentName: 'Sarah Chen', course: 'Physics 101', assignment1: 78, assignment2: 82, midterm: 75, finalExam: 80, classProject: 82, attendanceMark: 85, comments: 'Good performance. Needs a bit more focus on lab reports.', lastUpdated: new Date().toISOString() },
+      { id: 'gr_003', studentId: 'std_003', studentName: 'David Miller', course: 'Biology 202', assignment1: 92, assignment2: 88, midterm: 85, finalExam: 90, classProject: 89, attendanceMark: 94, comments: 'Consistent, neat lab write-ups. Excellent quiz taker.', lastUpdated: new Date().toISOString() },
+      { id: 'gr_004', studentId: 'std_004', studentName: 'Emma Watson', course: 'Mathematics 301', assignment1: 58, assignment2: 60, midterm: 55, finalExam: 62, classProject: 58, attendanceMark: 78, comments: 'Needs remedial assistance in calculus topics.', lastUpdated: new Date().toISOString() },
+      { id: 'gr_005', studentId: 'std_005', studentName: 'Lucas Silva', course: 'Physics 101', assignment1: 45, assignment2: 50, midterm: 48, finalExam: 52, classProject: 47, attendanceMark: 60, comments: 'High risk of failing. Recommend active tutoring immediately.', lastUpdated: new Date().toISOString() },
+      { id: 'gr_006', studentId: 'std_006', studentName: 'Sophia Taylor', course: 'Mathematics 301', assignment1: 88, assignment2: 85, midterm: 82, finalExam: 87, classProject: 86, attendanceMark: 92, comments: 'Participates well. Strong mathematical logic.', lastUpdated: new Date().toISOString() },
+      { id: 'gr_007', studentId: 'std_007', studentName: 'Noah Williams', course: 'Biology 202', assignment1: 74, assignment2: 70, midterm: 75, finalExam: 72, classProject: 76, attendanceMark: 88, comments: 'Requires continuous guidance on biology processes.', lastUpdated: new Date().toISOString() },
+      { id: 'gr_008', studentId: 'std_008', studentName: 'Olivia Brown', course: 'Computer Science 101', assignment1: 95, assignment2: 92, midterm: 96, finalExam: 94, classProject: 95, attendanceMark: 96, comments: 'Superb programming logic and project execution.', lastUpdated: new Date().toISOString() },
+      { id: 'gr_009', studentId: 'std_009', studentName: 'Liam Davis', course: 'Mathematics 301', assignment1: 40, assignment2: 45, midterm: 38, finalExam: 42, classProject: 46, attendanceMark: 55, comments: 'Struggling with fundamentals. Missed multiple assignments.', lastUpdated: new Date().toISOString() },
+      { id: 'gr_010', studentId: 'std_010', studentName: 'Mia Garcia', course: 'Biology 202', assignment1: 80, assignment2: 85, midterm: 78, finalExam: 82, classProject: 84, attendanceMark: 90, comments: 'Very receptive to feedback. Solid steady growth.', lastUpdated: new Date().toISOString() }
     ];
     changed = true;
   }
@@ -979,7 +979,7 @@ app.post('/api/teacher/materials/upload', async (req, res) => {
     
     const response = await ai.models.generateContent({
       model: 'gemini-3.5-flash',
-      contents: `Analyze this Pakistani lecture material: "${promptText}". Summarize the content into 3 to 4 distinct key academic takeaways (bullet points) and write a single-sentence strategic AI insight. Ensure you output in valid JSON matching this schema:
+      contents: `Analyze this educational lecture material: "${promptText}". Summarize the content into 3 to 4 distinct key academic takeaways (bullet points) and write a single-sentence strategic AI insight. Ensure you output in valid JSON matching this schema:
       {
         "keyTakeaways": ["takeaway 1", "takeaway 2", ...],
         "aiInsight": "insight description"
@@ -1113,8 +1113,8 @@ app.post('/api/teacher/quizzes/generate', async (req, res) => {
       : ['multiple-choice', 'true-false', 'fill-blank', 'short-answer', 'long-answer'];
 
     const ai = getGeminiClient();
-    const prompt = `You are an elite curriculum and assessment developer for Pakistani colleges. Generate a high-quality educational quiz with exactly ${questionCount} questions based on this source topic/material: "${matName}". ${sourceText ? `Source details: ${sourceText}` : ''}
-    The quiz must have difficulty level "${difficulty}" and be written in target language "${language}". If target language is "bilingual", formulate questions in a hybrid of Urdu and English as is common in Pakistani universities, or write English questions with Urdu translations.
+    const prompt = `You are an elite curriculum and assessment developer. Generate a high-quality educational quiz with exactly ${questionCount} questions based on this source topic/material: "${matName}". ${sourceText ? `Source details: ${sourceText}` : ''}
+    The quiz must have difficulty level "${difficulty}" and be written in target language "${language}". If target language is "bilingual", formulate questions with clear bilingual translations and explanations.
     
     You MUST distribute the questions across these types: [${requestedTypes.join(', ')}].
     For each question, specify the points based on style (MCQ: 10, True-False: 10, Fill-Blank: 10, Short-Answer: 15, Long-Answer: 25).
@@ -1273,51 +1273,51 @@ app.get('/api/quizzes', (req, res) => {
     // If empty, initialize with presets
     db.quizzes = [
       {
-        id: 'quiz_pak_studies',
-        title: 'Pakistan Studies & National Geography',
-        subject: 'Social Sciences',
+        id: 'quiz_physics_101',
+        title: 'Classical Mechanics & Newton Laws',
+        subject: 'Physics',
         difficulty: 'medium',
         durationSeconds: 300,
         questions: [
           {
-            id: 'pak_q1',
+            id: 'phy_q1',
             type: 'multiple-choice',
-            questionText: 'In which city was the historic Lahore Resolution (Resolution for Pakistan) passed in 1940?',
-            options: ['Karachi', 'Lahore', 'Islamabad', 'Dhaka'],
-            correctAnswer: 'Lahore',
-            explanation: 'The Lahore Resolution, which laid the foundation for Pakistan, was passed on March 23, 1940, at Minto Park (now Iqbal Park), Lahore.',
+            questionText: "Which of Newton's laws states that for every action, there is an equal and opposite reaction?",
+            options: ["First Law", "Second Law", "Third Law", "Law of Gravitation"],
+            correctAnswer: "Third Law",
+            explanation: "Newton's Third Law states that all forces between two objects exist in equal magnitude and opposite direction.",
             points: 10
           },
           {
-            id: 'pak_q2',
+            id: 'phy_q2',
             type: 'true-false',
-            questionText: "K2, the world's second-highest mountain peak, is located in the Karakoram mountain range of northern Pakistan.",
-            correctAnswer: 'True',
-            explanation: "Yes, K2 (8,611m) is located in Gilgit-Baltistan, Pakistan, in the Karakoram mountain range.",
+            questionText: "An object in motion will remain in motion unless acted upon by an external net force.",
+            correctAnswer: "True",
+            explanation: "This is Newton's First Law of Motion, also known as the Law of Inertia.",
             points: 10
           },
           {
-            id: 'pak_q3',
+            id: 'phy_q3',
             type: 'fill-blank',
-            questionText: 'The founder and first Governor-General of Pakistan, known as Quaid-e-Azam, was [Muhammad Ali Jinnah].',
-            correctAnswer: 'Muhammad Ali Jinnah',
-            explanation: "Muhammad Ali Jinnah led the Pakistan movement and was sworn in as the country's first Governor-General on August 15, 1947.",
+            questionText: "The standard SI unit of force is the [Newton].",
+            correctAnswer: "Newton",
+            explanation: "One Newton is the force needed to accelerate 1 kilogram of mass at 1 meter per second squared.",
             points: 10
           },
           {
-            id: 'pak_q4',
+            id: 'phy_q4',
             type: 'short-answer',
-            questionText: 'Name the national sport of Pakistan and mention another popular sport played extensively in the country.',
-            correctAnswer: 'Field Hockey and Cricket',
-            explanation: 'Field hockey is the official national sport of Pakistan, though cricket is the most widely played and popular sport.',
+            questionText: "State the mathematical formula for Newton's Second Law of Motion.",
+            correctAnswer: "F = ma",
+            explanation: "Force equals mass multiplied by acceleration (F = ma).",
             points: 15
           },
           {
-            id: 'pak_q5',
+            id: 'phy_q5',
             type: 'long-answer',
-            questionText: 'Discuss the historical significance of the Indus Valley Civilization and name the two primary excavation sites located in Pakistan.',
-            correctAnswer: 'Harappa and Mohenjo-Daro',
-            explanation: "The Indus Valley Civilization (c. 3300–1300 BCE) is one of the world's oldest urban civilizations. The two main administrative cities excavated are Harappa (near Sahiwal) and Mohenjo-Daro (near Larkana). They are famous for their grid-like street design and sophisticated drainage systems.",
+            questionText: "Explain the concept of conservation of linear momentum and provide an everyday real-world example.",
+            correctAnswer: "Conservation of momentum states total momentum remains constant in an isolated system. Examples include rocket propulsion or collisions on ice.",
+            explanation: "In a closed system with no external net forces, the total momentum before an interaction equals the total momentum after.",
             points: 25
           }
         ],
@@ -1434,9 +1434,9 @@ app.get('/api/quizzes/attempts', (req, res) => {
       {
         id: 'att_001',
         studentId: 'std_001',
-        studentName: 'Muhammad Ali',
-        quizId: 'quiz_pak_studies',
-        quizTitle: 'Pakistan Studies & National Geography',
+        studentName: 'Alex Johnson',
+        quizId: 'quiz_physics_101',
+        quizTitle: 'Classical Mechanics & Newton Laws',
         score: 45,
         totalPoints: 70,
         timeSpentSeconds: 145,
@@ -1446,43 +1446,24 @@ app.get('/api/quizzes/attempts', (req, res) => {
         violationsCount: 0,
         violationsList: [],
         gradedQuestions: [
-          { questionId: 'pak_q1', userResponse: 'Lahore', isCorrect: true, pointsAwarded: 10 },
-          { questionId: 'pak_q2', userResponse: 'True', isCorrect: true, pointsAwarded: 10 }
+          { questionId: 'phy_q1', userResponse: 'Third Law', isCorrect: true, pointsAwarded: 10 },
+          { questionId: 'phy_q2', userResponse: 'True', isCorrect: true, pointsAwarded: 10 }
         ]
       },
       {
         id: 'att_002',
         studentId: 'std_002',
-        studentName: 'Ayesha Khan',
-        quizId: 'quiz_pak_studies',
-        quizTitle: 'Pakistan Studies & National Geography',
+        studentName: 'Sarah Chen',
+        quizId: 'quiz_physics_101',
+        quizTitle: 'Classical Mechanics & Newton Laws',
         score: 35,
         totalPoints: 70,
         timeSpentSeconds: 190,
         grade: 'C - Pass',
         date: '2026-07-06',
         completed: true,
-        violationsCount: 2,
-        violationsList: [
-          {
-            id: 'vio_1',
-            studentId: 'std_002',
-            studentName: 'Ayesha Khan',
-            quizId: 'quiz_pak_studies',
-            quizTitle: 'Pakistan Studies & National Geography',
-            eventType: 'tab-switched',
-            timestamp: '2026-07-06T14:32:10Z'
-          },
-          {
-            id: 'vio_2',
-            studentId: 'std_002',
-            studentName: 'Ayesha Khan',
-            quizId: 'quiz_pak_studies',
-            quizTitle: 'Pakistan Studies & National Geography',
-            eventType: 'lost-focus',
-            timestamp: '2026-07-06T14:33:45Z'
-          }
-        ],
+        violationsCount: 0,
+        violationsList: [],
         gradedQuestions: []
       }
     ];
@@ -1519,13 +1500,13 @@ app.post('/api/quizzes/recommendations', async (req, res) => {
   const { studentName, weakTopics, scores } = req.body;
   try {
     const ai = getGeminiClient();
-    const prompt = `You are an elite, highly encouraging AI Academic Coach for Pakistani college students. 
-    Analyze the following academic profile for student "${studentName || 'Muhammad Ali'}":
+    const prompt = `You are an elite, highly encouraging AI Academic Coach for college and university students. 
+    Analyze the following academic profile for student "${studentName || 'Alex Johnson'}":
     - Weak Topics & Performance: ${JSON.stringify(weakTopics || [])}
     - Recent Quiz Scores: ${JSON.stringify(scores || [])}
     
     Please provide:
-    1. A warm, motivational analysis of their current standing (acknowledging Pakistani college stresses like board exams, entry tests).
+    1. A warm, motivational analysis of their current standing.
     2. Specific, highly actionable study strategies for their 2-3 weakest topics (e.g. active recall methods, graphical mapping).
     3. Suggested peer group or online practice resources.
     
@@ -1540,7 +1521,7 @@ app.post('/api/quizzes/recommendations', async (req, res) => {
   } catch (err: any) {
     console.error('Recommendations generation error:', err);
     res.json({ 
-      recommendation: `### 🌟 Study Plan & AI Recommendations for **${studentName || 'Muhammad Ali'}**
+      recommendation: `### 🌟 Study Plan & AI Recommendations for **${studentName || 'Alex Johnson'}**
 
 *Keep pushing forward! Here is your tailored roadmap to success:*
 
@@ -1757,7 +1738,7 @@ app.post('/api/ai-workspace/stream', async (req, res) => {
     const contextPrompt = `Topic or Source Material: "${matName}".
 ${sourceText ? `Source Content Context Details:\n${sourceText}` : ''}
 Difficulty Level: ${difficulty}
-Target Language: ${language} (If "Urdu", write strictly in Urdu script. If "bilingual", mix English and Urdu or provide translations/explanations for key concepts as is common in Pakistani schools. If "English", write in clear English).`;
+Target Language: ${language} (If "Urdu", write strictly in Urdu script. If "bilingual", mix English and Urdu or provide translations/explanations for key academic concepts. If "English", write in clear English).`;
 
     if (task === 'summary') {
       prompt = `You are an expert educator. Generate a comprehensive, high-quality, and highly detailed Executive Summary for the following topic.

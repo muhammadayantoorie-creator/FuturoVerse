@@ -5,14 +5,139 @@
     "avgClassScore": 0,
     "totalMaterials": 0
   },
-  "users": [],
+  "users": [
+    {
+      "id": "usr_dq1kle2dz",
+      "email": "muhammadayantoorie@gmail.com",
+      "password": "$2b$10$uJXp8Bku.NAiSgFnNORWv.sQl1b7WEk/v03o4e3untgyos3DaT67W",
+      "name": "Muhammad Ayan",
+      "role": "teacher",
+      "createdAt": "2026-10-08T20:03:34.702Z"
+    }
+  ],
   "classes": [],
   "classrooms": [],
   "materials": [],
   "students": [],
   "notifications": [],
   "lessons": [],
-  "quizzes": [],
+  "quizzes": [
+    {
+      "id": "quiz_physics_101",
+      "title": "Classical Mechanics & Newton Laws",
+      "subject": "Physics",
+      "difficulty": "medium",
+      "durationSeconds": 300,
+      "questions": [
+        {
+          "id": "phy_q1",
+          "type": "multiple-choice",
+          "questionText": "Which of Newton's laws states that for every action, there is an equal and opposite reaction?",
+          "options": [
+            "First Law",
+            "Second Law",
+            "Third Law",
+            "Law of Gravitation"
+          ],
+          "correctAnswer": "Third Law",
+          "explanation": "Newton's Third Law states that all forces between two objects exist in equal magnitude and opposite direction.",
+          "points": 10
+        },
+        {
+          "id": "phy_q2",
+          "type": "true-false",
+          "questionText": "An object in motion will remain in motion unless acted upon by an external net force.",
+          "correctAnswer": "True",
+          "explanation": "This is Newton's First Law of Motion, also known as the Law of Inertia.",
+          "points": 10
+        },
+        {
+          "id": "phy_q3",
+          "type": "fill-blank",
+          "questionText": "The standard SI unit of force is the [Newton].",
+          "correctAnswer": "Newton",
+          "explanation": "One Newton is the force needed to accelerate 1 kilogram of mass at 1 meter per second squared.",
+          "points": 10
+        },
+        {
+          "id": "phy_q4",
+          "type": "short-answer",
+          "questionText": "State the mathematical formula for Newton's Second Law of Motion.",
+          "correctAnswer": "F = ma",
+          "explanation": "Force equals mass multiplied by acceleration (F = ma).",
+          "points": 15
+        },
+        {
+          "id": "phy_q5",
+          "type": "long-answer",
+          "questionText": "Explain the concept of conservation of linear momentum and provide an everyday real-world example.",
+          "correctAnswer": "Conservation of momentum states total momentum remains constant in an isolated system. Examples include rocket propulsion or collisions on ice.",
+          "explanation": "In a closed system with no external net forces, the total momentum before an interaction equals the total momentum after.",
+          "points": 25
+        }
+      ],
+      "status": "published",
+      "attemptsAllowed": 3,
+      "passingMarks": 30,
+      "shuffleQuestions": false,
+      "shuffleOptions": true,
+      "autoSubmitOnTimeout": true,
+      "showScoreAfterSubmission": true,
+      "showCorrectAnswers": true,
+      "negativeMarking": false,
+      "autoSubmitThreshold": 3
+    },
+    {
+      "id": "quiz_calculus_101",
+      "title": "Differential Calculus & Limits",
+      "subject": "Mathematics",
+      "difficulty": "hard",
+      "durationSeconds": 420,
+      "questions": [
+        {
+          "id": "calc_q1",
+          "type": "multiple-choice",
+          "questionText": "What is the limit of sin(x) / x as x approaches 0?",
+          "options": [
+            "0",
+            "1",
+            "Infinity",
+            "Undefined"
+          ],
+          "correctAnswer": "1",
+          "explanation": "This is a fundamental trigonometric limit. According to L'Hopital's rule, taking derivative of sin(x) is cos(x) and x is 1. Evaluated at x=0, cos(0)/1 = 1.",
+          "points": 10,
+          "mathFormula": "\\lim_{x \\to 0} \\frac{\\sin(x)}{x} = 1"
+        },
+        {
+          "id": "calc_q2",
+          "type": "true-false",
+          "questionText": "If a function is continuous at a given point, then it must also be differentiable at that point.",
+          "correctAnswer": "False",
+          "explanation": "Continuity is a necessary but not sufficient condition for differentiability. A classic counterexample is f(x) = |x| at x = 0, which is continuous but has a sharp corner, making it non-differentiable.",
+          "points": 10
+        },
+        {
+          "id": "calc_q3",
+          "type": "fill-blank",
+          "questionText": "Using the power rule of differentiation, the derivative of f(x) = 3x³ - 5x² + 7 with respect to x is [9x² - 10x].",
+          "correctAnswer": "9x^2 - 10x",
+          "explanation": "Apply d/dx(x^n) = n*x^(n-1). d/dx(3x³) = 9x², d/dx(-5x²) = -10x, and d/dx(7) = 0.",
+          "points": 10
+        }
+      ],
+      "status": "published",
+      "attemptsAllowed": 2,
+      "passingMarks": 40,
+      "shuffleQuestions": true,
+      "shuffleOptions": true,
+      "autoSubmitOnTimeout": true,
+      "showScoreAfterSubmission": true,
+      "showCorrectAnswers": false,
+      "negativeMarking": true,
+      "autoSubmitThreshold": 2
+    }
+  ],
   "quizAttempts": [],
   "workspaceItems": [],
   "weakTopics": [],
