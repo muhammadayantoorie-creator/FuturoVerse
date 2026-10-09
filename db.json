@@ -13,6 +13,15 @@
       "name": "Muhammad Ayan",
       "role": "teacher",
       "createdAt": "2026-10-08T20:03:34.702Z"
+    },
+    {
+      "id": "usr_copbodi9x",
+      "email": "mu.ayan.51214@gmail.com",
+      "password": "$2b$10$xxUltb6weFLRP4tK/fkiV.iYwIaf5NSs3OvOKhUjEtA4ZQ/0lRxji",
+      "name": "Muhammad Ayan",
+      "role": "student",
+      "studentId": "std_5298e",
+      "createdAt": "2026-10-09T05:36:56.772Z"
     }
   ],
   "classes": [],
@@ -143,7 +152,28 @@
   "weakTopics": [],
   "tickets": [],
   "gradebook": [],
-  "conversations": [],
+  "conversations": [
+    {
+      "id": "conv_i8giyq32y",
+      "userId": "usr_copbodi9x",
+      "title": "hello",
+      "createdAt": "2026-10-09T05:39:06.338Z",
+      "messages": [
+        {
+          "id": "msg_kkkrkdblm",
+          "sender": "bot",
+          "text": "Hello! I am your AI Chat Assistant. How can I assist you today?",
+          "timestamp": "10:39 AM"
+        },
+        {
+          "id": "msg_user_vlsls4w0y",
+          "sender": "user",
+          "text": "can you make me notes",
+          "timestamp": "10:39"
+        }
+      ]
+    }
+  ],
   "analytics": {
     "attendance": [],
     "studentGrowth": [],
