@@ -3,7 +3,10 @@
  * Wraps the main Express app for Vercel deployment.
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { app, initializeDatabase } from '../server';
+// @ts-ignore
+import serverModule from '../dist/server.cjs';
+const app = serverModule?.app || serverModule?.default?.app || serverModule?.default || serverModule;
+const initializeDatabase = serverModule?.initializeDatabase || serverModule?.default?.initializeDatabase || (() => Promise.resolve());
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
