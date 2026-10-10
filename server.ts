@@ -845,16 +845,7 @@ app.post('/api/auth/register', (req, res) => {
 
     const existingUser = db.users.find((u: any) => u.email.toLowerCase() === emailLower);
     if (existingUser) {
-      // Already exists — return their profile as success (idempotent registration)
-      const payload = { id: existingUser.id, email: existingUser.email, role: existingUser.role, name: existingUser.name, studentId: existingUser.studentId };
-      const accessToken = generateAccessToken(payload, rememberMe);
-      const refreshToken = generateRefreshToken(payload, rememberMe);
-      res.cookie('accessToken', accessToken, cookieOptions(rememberMe ? 7 * 24 * 3600 * 1000 : 15 * 60 * 1000));
-      res.cookie('refreshToken', refreshToken, cookieOptions(rememberMe ? 30 * 24 * 3600 * 1000 : 7 * 24 * 3600 * 1000));
-      return res.json({
-        success: true,
-        user: { id: existingUser.id, email: existingUser.email, role: existingUser.role, name: existingUser.name, studentId: existingUser.studentId }
-      });
+      return res.status(400).json({ error: 'An account with this email already exists. Please log in instead.' });
     }
 
     const userId = `usr_${Math.random().toString(36).substring(2, 11)}`;
@@ -871,6 +862,23 @@ app.post('/api/auth/register', (req, res) => {
     };
 
     db.users.push(newUser);
+
+    if (userRole === 'student') {
+      const existingStudent = db.students.find((s: any) => s.email.toLowerCase() === emailLower);
+      if (!existingStudent) {
+        db.students.unshift({
+          id: studentId || `std_${Math.random().toString(36).substring(2, 7)}`,
+          name: name.trim(),
+          email: emailLower,
+          course: 'Physics 101',
+          progress: 0,
+          score: 80,
+          status: 'active',
+          lastActive: new Date().toISOString().split('T')[0],
+        });
+        db.stats.activeStudents = db.students.length;
+      }
+    }
 
     // Save DB — on Vercel this may fail (read-only FS), but user is in memory cache
     try {
@@ -1178,28 +1186,57 @@ app.post('/api/teacher/students', authenticateToken, requireRole(['teacher', 'ad
     return res.status(400).json({ error: 'Name, email, and course are required.' });
   }
 
-  const id = `std_${Math.random().toString(36).substr(2, 9)}`;
+  const emailLower = email.toLowerCase().trim();
+  const nameTrimmed = name.trim();
+  const id = `std_${Math.random().toString(36).substring(2, 9)}`;
   const status = score >= 80 ? 'active' : score >= 60 ? 'warning' : 'danger';
-  const newStudent = {
-    id,
-    name,
-    email,
-    course,
-    progress: Number(progress),
-    score: Number(score),
-    status,
-    lastActive: new Date().toISOString().split('T')[0],
-  };
 
-  db.students.unshift(newStudent);
+  const existingStudent = db.students.find((s: any) => s.email.toLowerCase() === emailLower);
+  let newStudent;
+  if (existingStudent) {
+    existingStudent.name = nameTrimmed;
+    existingStudent.course = course;
+    existingStudent.progress = Number(progress);
+    existingStudent.score = Number(score);
+    existingStudent.status = status;
+    newStudent = existingStudent;
+  } else {
+    newStudent = {
+      id,
+      name: nameTrimmed,
+      email: emailLower,
+      course,
+      progress: Number(progress),
+      score: Number(score),
+      status,
+      lastActive: new Date().toISOString().split('T')[0],
+    };
+    db.students.unshift(newStudent);
+  }
+
+  // Also ensure student user account exists in db.users so student can log in
+  const existingUser = db.users.find((u: any) => u.email.toLowerCase() === emailLower);
+  if (!existingUser) {
+    const newUser = {
+      id: `usr_${Math.random().toString(36).substring(2, 11)}`,
+      email: emailLower,
+      password: bcrypt.hashSync('Password123!', 10),
+      name: nameTrimmed,
+      role: 'student',
+      studentId: id,
+      createdAt: new Date().toISOString()
+    };
+    db.users.push(newUser);
+  }
+
   db.stats.activeStudents = db.students.length;
   
   // recalculate class average
   const totalScores = db.students.reduce((sum: number, s: any) => sum + s.score, 0);
-  db.stats.avgClassScore = Math.round((totalScores / db.students.length) * 10) / 10;
+  db.stats.avgClassScore = db.students.length > 0 ? Math.round((totalScores / db.students.length) * 10) / 10 : 0;
 
   saveDb(db);
-  res.status(210).json(newStudent);
+  res.status(201).json(newStudent);
 });
 
 // Materials endpoint (recent uploads) with search and pagination

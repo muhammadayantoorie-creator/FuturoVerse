@@ -1253,23 +1253,22 @@ export const Dashboard: React.FC = () => {
                 <CalendarIcon className="w-4 h-4 text-white" />
                 <span className="text-white">Schedule Session</span>
               </Button>
+              <Button 
+                variant="outlined" 
+                size="sm"
+                onClick={() => {
+                  if (classes && classes.length > 0) {
+                    setNewStudentForm(prev => ({ ...prev, course: classes[0].name }));
+                  }
+                  setIsAddStudentOpen(true);
+                }}
+                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white hover:text-white border-transparent shadow-md dark:bg-emerald-700 dark:hover:bg-emerald-800"
+              >
+                <UserPlus className="w-4 h-4 text-white" />
+                <span className="text-white">Enroll Student</span>
+              </Button>
             </>
           )}
-
-          <Button 
-            variant="outlined" 
-            size="sm"
-            onClick={() => {
-              if (classes && classes.length > 0) {
-                setNewStudentForm(prev => ({ ...prev, course: classes[0].name }));
-              }
-              setIsAddStudentOpen(true);
-            }}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white hover:text-white border-transparent shadow-md dark:bg-emerald-700 dark:hover:bg-emerald-800"
-          >
-            <UserPlus className="w-4 h-4 text-white" />
-            <span className="text-white">Enroll Student</span>
-          </Button>
         </div>
       </div>
 

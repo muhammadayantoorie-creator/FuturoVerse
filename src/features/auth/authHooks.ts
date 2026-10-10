@@ -103,7 +103,7 @@ export function useRegisterMutation() {
           credential = await createUserWithEmailAndPassword(auth, emailClean, userData.password);
         } catch (fbErr: any) {
           if (fbErr?.code === 'auth/email-already-in-use') {
-            credential = await signInWithEmailAndPassword(auth, emailClean, userData.password);
+            throw new Error('An account with this email already exists. Please log in instead.');
           } else if (fbErr?.code === 'auth/weak-password') {
             throw new Error('Password is too weak. Please use at least 6 characters.');
           } else if (fbErr?.code === 'auth/invalid-email') {
@@ -120,7 +120,11 @@ export function useRegisterMutation() {
           nameTrimmed,
         );
       } catch (err: any) {
-        if (err?.message?.includes('Password is too weak') || err?.message?.includes('Invalid email address')) {
+        if (
+          err?.message?.includes('Password is too weak') || 
+          err?.message?.includes('Invalid email address') ||
+          err?.message?.includes('already exists')
+        ) {
           throw err;
         }
         console.warn('Firebase registration/session exchange failed; trying the local server fallback:', err?.code || err?.message);

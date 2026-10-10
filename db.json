@@ -1,8 +1,8 @@
 {
   "stats": {
-    "activeStudents": 0,
+    "activeStudents": 1,
     "quizzesGenerated": 0,
-    "avgClassScore": 0,
+    "avgClassScore": 85,
     "totalMaterials": 0
   },
   "users": [
@@ -27,7 +27,18 @@
   "classes": [],
   "classrooms": [],
   "materials": [],
-  "students": [],
+  "students": [
+    {
+      "id": "std_5298e",
+      "name": "Muhammad Ayan",
+      "email": "mu.ayan.51214@gmail.com",
+      "course": "Physics 101",
+      "progress": 80,
+      "score": 85,
+      "status": "active",
+      "lastActive": "2026-10-10"
+    }
+  ],
   "notifications": [],
   "lessons": [],
   "quizzes": [],
