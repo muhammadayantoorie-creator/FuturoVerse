@@ -89,9 +89,12 @@ const hasFirestoreCredentials = Boolean(
 
 if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
   try {
-    firebaseCredential = cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON));
-  } catch {
-    throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON must contain valid service-account JSON.');
+    const rawCred = process.env.FIREBASE_SERVICE_ACCOUNT_JSON.trim();
+    if (rawCred.startsWith('{')) {
+      firebaseCredential = cert(JSON.parse(rawCred));
+    }
+  } catch (err: any) {
+    console.warn('FIREBASE_SERVICE_ACCOUNT_JSON could not be parsed, continuing with fallback:', err?.message || err);
   }
 }
 
@@ -105,19 +108,19 @@ try {
     adminApp = getApp();
   }
   console.log('Firebase Admin SDK initialized successfully.');
-  firestoreDb = firebaseConfig.firestoreDatabaseId
+  firestoreDb = firebaseConfig.firestoreDatabaseId && adminApp
     ? getFirestore(adminApp, firebaseConfig.firestoreDatabaseId)
-    : getFirestore(adminApp);
+    : (adminApp ? getFirestore(adminApp) : null);
 } catch (error) {
-  console.error('Error initializing Firebase Admin SDK:', error);
+  console.warn('Error initializing Firebase Admin SDK (falling back to memory/file storage):', error);
   try {
     adminApp = getApps().length > 0 ? getApp() : undefined;
     firestoreDb = firebaseConfig.firestoreDatabaseId && adminApp
       ? getFirestore(adminApp, firebaseConfig.firestoreDatabaseId)
-      : getFirestore();
+      : (adminApp ? getFirestore(adminApp) : null);
   } catch (appErr) {
-    console.error('Failed to get initialized app:', appErr);
-    firestoreDb = getFirestore();
+    console.warn('Could not acquire Firestore instance:', appErr);
+    firestoreDb = null;
   }
 }
 
@@ -3072,7 +3075,15 @@ async function startServer() {
 
 // Vercel imports the Express app from api/index.ts. Local development and a
 // standalone production process start the HTTP listener here instead.
-if (process.env.VERCEL !== '1') {
+const isServerlessEnvironment = Boolean(
+  process.env.VERCEL === '1' ||
+  process.env.VERCEL === 'true' ||
+  process.env.VERCEL_ENV ||
+  process.env.NOW_REGION ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME
+);
+
+if (!isServerlessEnvironment) {
   startServer().catch((error) => {
     console.error('Server startup failed:', error);
     process.exit(1);
