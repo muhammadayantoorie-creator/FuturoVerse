@@ -4,9 +4,9 @@
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 // @ts-ignore
-import serverModule from '../dist/server.js';
-const app = serverModule?.app || serverModule?.default?.app || serverModule?.default || serverModule;
-const initializeDatabase = serverModule?.initializeDatabase || serverModule?.default?.initializeDatabase || (() => Promise.resolve());
+import * as serverModule from '../dist/server.js';
+const app = (serverModule as any).app || (serverModule as any).default?.app || (serverModule as any).default;
+const initializeDatabase = (serverModule as any).initializeDatabase || (serverModule as any).default?.initializeDatabase || (() => Promise.resolve());
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
