@@ -104,6 +104,7 @@ export function useRegisterMutation() {
         try {
           credential = await createUserWithEmailAndPassword(auth, emailClean, userData.password);
         } catch (fbErr: any) {
+          // Surface user-facing Firebase errors immediately
           if (fbErr?.code === 'auth/email-already-in-use') {
             throw new Error('An account with this email already exists. Please log in instead.');
           } else if (fbErr?.code === 'auth/weak-password') {
@@ -111,17 +112,23 @@ export function useRegisterMutation() {
           } else if (fbErr?.code === 'auth/invalid-email') {
             throw new Error('Invalid email address format.');
           } else {
-            throw fbErr;
+            // Non-user-facing error (network, invalid API key, unauthorized domain, etc.)
+            // Fall through to local server fallback by NOT rethrowing
+            console.warn('Firebase registration unavailable, using local server:', fbErr?.code || fbErr?.message);
+            credential = null;
           }
         }
 
-        userProfile = await exchangeFirebaseSession(
-          await credential.user.getIdToken(),
-          userData.role || 'student',
-          userData.rememberMe,
-          nameTrimmed,
-        );
+        if (credential) {
+          userProfile = await exchangeFirebaseSession(
+            await credential.user.getIdToken(),
+            userData.role || 'student',
+            userData.rememberMe,
+            nameTrimmed,
+          );
+        }
       } catch (err: any) {
+        // Re-throw user-facing errors (email-in-use, weak-password, etc.)
         if (
           err?.message?.includes('Password is too weak') || 
           err?.message?.includes('Invalid email address') ||
@@ -129,10 +136,11 @@ export function useRegisterMutation() {
         ) {
           throw err;
         }
-        console.warn('Firebase registration/session exchange failed; trying the local server fallback:', err?.code || err?.message);
+        // Session exchange failed — fall through to local server
+        console.warn('Firebase session exchange failed; trying local server:', err?.code || err?.message);
       }
 
-      // The local server fallback keeps demo and offline-development accounts usable.
+      // Local server fallback: works without Firebase (dev/demo/offline)
       if (!userProfile) try {
         const res = await fetch('/api/auth/register', {
           method: 'POST',
@@ -159,10 +167,10 @@ export function useRegisterMutation() {
           };
         } else {
           const error = await res.json().catch(() => ({}));
-          throw new Error(error.error || 'Registration could not be completed.');
+          throw new Error(error.error || 'Registration could not be completed. Please try again.');
         }
       } catch (apiErr: any) {
-        throw new Error(apiErr?.message || 'Registration could not be completed.');
+        throw new Error(apiErr?.message || 'Registration could not be completed. Please try again.');
       }
 
       // A server session is required because protected API access is authoritative.
