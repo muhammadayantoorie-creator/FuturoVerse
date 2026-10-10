@@ -978,9 +978,12 @@ app.post('/api/auth/firebase', async (req, res) => {
     const db = getDb();
     let user = db.users.find((candidate: any) => candidate.email?.toLowerCase() === email);
     if (!user) {
-      const role = requestedRole === 'teacher' && process.env.ALLOW_PUBLIC_TEACHER_REGISTRATION === 'true'
+      // 'auto' means "login flow" — new users created here during login default to student.
+      // During registration, the explicit role (teacher/student/admin) is sent instead.
+      const effectiveRole = requestedRole === 'auto' ? 'student' : requestedRole;
+      const role = effectiveRole === 'teacher' && process.env.ALLOW_PUBLIC_TEACHER_REGISTRATION === 'true'
         ? 'teacher'
-        : requestedRole === 'admin' && decoded.admin
+        : effectiveRole === 'admin' && decoded.admin
         ? 'admin'
         : 'student';
       const studentId = role === 'student' ? `std_${Math.random().toString(36).substring(2, 7)}` : undefined;
@@ -996,6 +999,23 @@ app.post('/api/auth/firebase', async (req, res) => {
         createdAt: new Date().toISOString(),
       };
       db.users.push(user);
+      // Also add to students list if registering as student
+      if (role === 'student') {
+        const existingStudent = db.students.find((s: any) => s.email?.toLowerCase() === email);
+        if (!existingStudent) {
+          db.students.unshift({
+            id: studentId,
+            name: user.name,
+            email,
+            course: 'Physics 101',
+            progress: 0,
+            score: 80,
+            status: 'active',
+            lastActive: new Date().toISOString().split('T')[0],
+          });
+          db.stats.activeStudents = db.students.length;
+        }
+      }
       saveDb(db);
     } else if (user.role === 'student' && !user.studentId) {
       user.studentId = `std_${Math.random().toString(36).substring(2, 7)}`;

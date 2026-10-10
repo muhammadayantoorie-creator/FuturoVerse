@@ -61,7 +61,9 @@ export function useLoginMutation() {
       let userProfile: UserProfile;
       try {
         const credential = await signInWithEmailAndPassword(auth, emailClean, credentials.password);
-        userProfile = await exchangeFirebaseSession(await credential.user.getIdToken(), 'student', credentials.rememberMe);
+        // Pass 'student' as a fallback only — the server will use the existing
+        // user's stored role if they are already registered (teacher / admin / student).
+        userProfile = await exchangeFirebaseSession(await credential.user.getIdToken(), 'auto' as any, credentials.rememberMe);
       } catch (firebaseError) {
         // Existing demo/local accounts use the server password store. Keep this
         // fallback so they remain usable when Firebase Auth is unavailable.
