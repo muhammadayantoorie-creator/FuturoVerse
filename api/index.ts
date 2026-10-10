@@ -4,7 +4,7 @@
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 // @ts-ignore
-import serverModule from '../dist/server.cjs';
+import serverModule from '../dist/server.js';
 const app = serverModule?.app || serverModule?.default?.app || serverModule?.default || serverModule;
 const initializeDatabase = serverModule?.initializeDatabase || serverModule?.default?.initializeDatabase || (() => Promise.resolve());
 

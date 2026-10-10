@@ -10,7 +10,7 @@
   "functions": {
     "api/index.ts": {
       "maxDuration": 60,
-      "includeFiles": "dist/server.cjs"
+      "includeFiles": "dist/server.js"
     }
   }
 }
