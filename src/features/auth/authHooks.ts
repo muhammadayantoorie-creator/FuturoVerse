@@ -120,12 +120,18 @@ export function useRegisterMutation() {
         }
 
         if (credential) {
-          userProfile = await exchangeFirebaseSession(
-            await credential.user.getIdToken(),
-            userData.role || 'student',
-            userData.rememberMe,
-            nameTrimmed,
-          );
+          try {
+            userProfile = await exchangeFirebaseSession(
+              await credential.user.getIdToken(),
+              userData.role || 'student',
+              userData.rememberMe,
+              nameTrimmed,
+            );
+          } catch (sessionErr: any) {
+            // If token exchange fails (e.g. no service account on server),
+            // fall through to local server registration as a reliable backup.
+            console.warn('Firebase session exchange failed, falling back to local server:', sessionErr?.message);
+          }
         }
       } catch (err: any) {
         // Re-throw user-facing errors (email-in-use, weak-password, etc.)
