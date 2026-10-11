@@ -6,7 +6,7 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
-import { createServer as createViteServer } from 'vite';
+// Vite is only imported dynamically in development (see startServer below)
 import { GoogleGenAI, Type } from '@google/genai';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
@@ -3055,6 +3055,8 @@ async function startServer() {
   await initializeDatabase();
 
   if (process.env.NODE_ENV !== 'production') {
+    // Dynamic import so Vite/Rollup are never required in serverless/production
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',

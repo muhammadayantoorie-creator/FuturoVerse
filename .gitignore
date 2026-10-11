@@ -17,3 +17,6 @@ serviceAccountKey.json
 firebase-service-account*.json
 secrets/
 .npmrc
+
+.vercel
+.env*
